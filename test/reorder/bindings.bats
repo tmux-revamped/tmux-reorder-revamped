@@ -209,3 +209,27 @@ binding_for() {
   # Assert
   [[ "${status}" -eq 0 && -z "${output}" ]]
 }
+
+@test "apply records a press that tmux reports as a second or third click" {
+  # Arrange
+  MOCK_KEYS=""
+
+  # Act
+  run reorder_apply
+
+  # Assert
+  [[ "$(binding_for SecondClick1Status)" == "tmux bind-key -n SecondClick1Status set-option -gF -t = @reorder_revamped_pressed #{window_id} \\; set-option -gF @reorder_revamped_pressed_at #{client_activity}" ]]
+  [[ "$(binding_for TripleClick1Status)" == "tmux bind-key -n TripleClick1Status set-option -gF -t = @reorder_revamped_pressed #{window_id} \\; set-option -gF @reorder_revamped_pressed_at #{client_activity}" ]]
+}
+
+@test "apply leaves a second click binding it does not own" {
+  # Arrange
+  MOCK_KEYS="bind-key -T root SecondClick1Status display-message mine"
+
+  # Act
+  run reorder_apply
+
+  # Assert
+  run binding_for SecondClick1Status
+  [[ "${status}" -eq 1 ]]
+}

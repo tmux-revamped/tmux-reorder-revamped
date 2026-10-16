@@ -105,6 +105,14 @@ reorder_bind_press() {
   _tmux bind-key -n MouseDown1Status "${command[@]}"
 }
 
+reorder_bind_repeat_press() {
+  local key="${1}" current
+  current="$(reorder_binding_command "${key}")"
+  [[ -z "${current}" || "${current}" == *"${REORDER_PRESS_OPTION}"* ]] || return 0
+  _tmux bind-key -n "${key}" set-option -gF -t "=" "${REORDER_PRESS_OPTION}" '#{window_id}' \
+    '\;' set-option -gF "${REORDER_PRESS_AT_OPTION}" '#{client_activity}'
+}
+
 reorder_bind_press_release() {
   local current
   current="$(reorder_binding_command MouseUp1Status)"
@@ -135,6 +143,8 @@ reorder_apply() {
   [[ "${live}" == "${REORDER_LIVE_WINDOW}" ]] &&
     _tmux set-option -g "${REORDER_HIT_OPTION}" "${REORDER_WINDOW_HIT_FORMAT}"
   reorder_bind_press
+  reorder_bind_repeat_press SecondClick1Status
+  reorder_bind_repeat_press TripleClick1Status
   reorder_bind_press_release
   reorder_bind_grab "${live}" "${self}"
   reorder_bind_release MouseDragEnd1Status "-t" \

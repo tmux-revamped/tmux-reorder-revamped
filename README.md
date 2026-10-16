@@ -78,6 +78,7 @@ All of them live in the root table, because a mouse gesture has no prefix. `Mous
 | Key | Action |
 |---|---|
 | `MouseDown1Status` | Records the tab you pressed, then runs the original press command |
+| `SecondClick1Status`, `TripleClick1Status` | Record the press too, because tmux reports a press soon after a click as a repeated click. Left alone if you bound them yourself |
 | `MouseUp1Status` | Forgets the press on a plain click. Left alone if you bound it yourself |
 | `MouseDrag1Status` | Records the grabbed tab on the first motion, then slides it whenever the pointer enters another tab |
 | `MouseDragEnd1Status` | Moves the grabbed window to the tab under the pointer |
