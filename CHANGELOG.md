@@ -9,12 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Drag a window tab on the status bar and release it over another tab to move
-  the window there; the windows in between shift over.
+- Drag a window tab along the status bar and it slides into each tab it
+  crosses while the button is held, the way browser tabs move; release it
+  where you see it.
 - Releasing over `status-left` moves the window first; releasing over
   `status-right`, or over empty space after a left-justified window list,
   moves it last. `@reorder_revamped_edges off` turns these off.
-- `@reorder_revamped_mode swap` exchanges only the two windows.
-- `@reorder_revamped_timeout` ignores a drag abandoned over a pane, so a later
-  text selection released on the bar cannot move a window.
-- tmux below 3.2 binds nothing.
+- `@reorder_revamped_mode swap` exchanges only the two windows, on release.
+- `@reorder_revamped_live off` keeps the tabs still until release.
+- A drag counts only when it began with a press on a tab, so a text selection
+  in a pane that runs across the bar moves nothing. The stock
+  `MouseDown1Status` command keeps running.
+- Works on tmux 3.2 and later; tmux below 3.2 binds nothing.

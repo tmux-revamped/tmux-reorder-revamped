@@ -1,56 +1,14 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2034
 
-load "${BATS_TEST_DIRNAME}/../helpers.bash"
+load "${BATS_TEST_DIRNAME}/mocks.bash"
 
 setup() {
-  setup_test_environment
-  export REORDER_DRY_RUN=1
-  source "${BATS_TEST_DIRNAME}/../../src/reorder.sh"
-  MOCK_SETTINGS="||left"
-  MOCK_WINDOWS=$'1 @1\n2 @2\n3 @3\n4 @4'
-  MOCK_EDGES=""
-  MOCK_VERSION="tmux 3.8"
-  _query() { mock_query "$@"; }
-  _tmux_version_string() { printf '%s\n' "${MOCK_VERSION}"; }
+  setup_reorder_mocks
 }
 
 teardown() {
   cleanup_test_environment
-}
-
-mock_query() {
-  case "${1}" in
-    display-message) printf '%s\n' "${MOCK_SETTINGS}" ;;
-    list-windows) printf '%s\n' "${MOCK_WINDOWS}" ;;
-    show-option) printf '%s\n' "${MOCK_EDGES}" ;;
-    list-keys) printf '%s\n' "${MOCK_KEYS:-}" ;;
-  esac
-}
-
-@test "apply releases its own edge bindings when edges are turned off" {
-  # Arrange
-  MOCK_EDGES="off"
-  MOCK_KEYS="bind-key -T root MouseDragEnd1StatusLeft run-shell -b \"bash '${REORDER_SELF}' edge first\""
-
-  # Act
-  run reorder_apply
-
-  # Assert
-  [[ "${lines[2]}" == "tmux unbind-key -n MouseDragEnd1StatusLeft" ]]
-  [[ "${lines[3]}" == "tmux unbind-key -n MouseDragEnd1StatusRight" ]]
-  [[ "${lines[4]}" == "tmux unbind-key -n MouseDragEnd1StatusDefault" ]]
-}
-
-@test "apply leaves an edge binding it does not own when edges are off" {
-  # Arrange
-  MOCK_EDGES="off"
-  MOCK_KEYS="bind-key -T root MouseDragEnd1StatusLeft display-message mine"
-
-  # Act
-  run reorder_apply
-
-  # Assert
-  [[ "${output}" != *"unbind-key"* ]]
 }
 
 @test "drop falls back to the default timeout when the option is not a number" {
@@ -62,65 +20,6 @@ mock_query() {
 
   # Assert
   [[ "${output}" == 'tmux swap-window -d -s @1 -t work:2 ; select-window -t @1' ]]
-}
-
-@test "apply records the grabbed window on every status drag" {
-  # Arrange
-  local expected="tmux bind-key -n MouseDrag1Status set-option -gF -t = @reorder_revamped_source #{window_id}:#{client_activity}"
-
-  # Act
-  run reorder_apply
-
-  # Assert
-  [[ "${lines[0]}" == "${expected}" ]]
-}
-
-@test "apply binds the drop on a tab to a quoted drop command" {
-  # Arrange
-  local self
-  self="$(reorder_quote_for_run_shell "${REORDER_SELF}")"
-
-  # Act
-  run reorder_apply
-
-  # Assert
-  [[ "${lines[1]}" == "tmux bind-key -n MouseDragEnd1Status run-shell -b -t = bash ${self} drop '#{session_id}' '#{@reorder_revamped_source}' '#{window_id}' '#{client_activity}' \\; set-option -gu @reorder_revamped_source" ]]
-}
-
-@test "apply binds the three edge drops by default" {
-  # Arrange
-  MOCK_EDGES=""
-
-  # Act
-  run reorder_apply
-
-  # Assert
-  [[ "${#lines[@]}" -eq 5 ]]
-  [[ "${lines[2]}" == *"MouseDragEnd1StatusLeft run-shell -b bash "*" edge first "* ]]
-  [[ "${lines[3]}" == *"MouseDragEnd1StatusRight run-shell -b bash "*" edge last "* ]]
-  [[ "${lines[4]}" == *"MouseDragEnd1StatusDefault run-shell -b bash "*" edge trailing "* ]]
-}
-
-@test "apply skips the edge drops when edges are off" {
-  # Arrange
-  MOCK_EDGES="off"
-
-  # Act
-  run reorder_apply
-
-  # Assert
-  [[ "${#lines[@]}" -eq 2 ]]
-}
-
-@test "apply binds nothing below tmux 3.2" {
-  # Arrange
-  MOCK_VERSION="tmux 3.1c"
-
-  # Act
-  run reorder_apply
-
-  # Assert
-  [[ "${status}" -eq 0 && -z "${output}" ]]
 }
 
 @test "drop forward walks the window through each neighbour" {
@@ -287,4 +186,125 @@ mock_query() {
 
   # Assert
   [[ "${output}" == 'logged reorder: moving @1 in work from position 0 to 1 failed' ]]
+}
+
+@test "grab maps each tab span after status-left to its window" {
+  # Arrange
+  local expected='tmux set-option -g @reorder_revamped_hit #{?#{&&:#{e|>=:#{mouse_x},9},#{e|<:#{mouse_x},22}},@1,#{?#{&&:#{e|>=:#{mouse_x},23},#{e|<:#{mouse_x},37}},@2,#{?#{&&:#{e|>=:#{mouse_x},38},#{e|<:#{mouse_x},52}},@3,#{?#{&&:#{e|>=:#{mouse_x},53},#{e|<:#{mouse_x},61}},@4,}}}}'
+
+  # Act
+  run reorder_grab work /dev/ttys000
+
+  # Assert
+  [[ "${output}" == "${expected}" ]]
+}
+
+@test "grab caps status-left at its configured length" {
+  # Arrange
+  MOCK_LAYOUT="left|on|200|120|100|30|100|1"
+
+  # Act
+  run reorder_grab work /dev/ttys000
+
+  # Assert
+  [[ "${output}" == *'#{e|>=:#{mouse_x},100},#{e|<:#{mouse_x},113}},@1,'* ]]
+}
+
+@test "grab maps nothing for a centred window list" {
+  # Arrange
+  MOCK_LAYOUT="centre|on|200|9|100|30|100|1"
+
+  # Act
+  run reorder_grab work /dev/ttys000
+
+  # Assert
+  [[ "${output}" == "tmux set-option -g @reorder_revamped_hit " ]]
+}
+
+@test "grab maps nothing when the window list overflows the bar" {
+  # Arrange
+  MOCK_LAYOUT="left|on|60|9|100|30|100|1"
+
+  # Act
+  run reorder_grab work /dev/ttys000
+
+  # Assert
+  [[ "${output}" == "tmux set-option -g @reorder_revamped_hit " ]]
+}
+
+@test "grab maps nothing for a multi-line status" {
+  # Arrange
+  MOCK_LAYOUT="left|2|200|9|100|30|100|1"
+
+  # Act
+  run reorder_grab work /dev/ttys000
+
+  # Assert
+  [[ "${output}" == "tmux set-option -g @reorder_revamped_hit " ]]
+}
+
+@test "slide moves the grabbed window onto the hovered tab" {
+  # Arrange
+  local source=@1 target=@3
+
+  # Act
+  run reorder_slide work "${source}" "${target}" "" 0
+
+  # Assert
+  [[ "${output}" == 'tmux swap-window -d -s @1 -t work:2 ; swap-window -d -s @1 -t work:3 ; select-window -t @1' ]]
+}
+
+@test "slide remaps the tab spans for the new order in the same command" {
+  # Arrange
+  local expected='tmux swap-window -d -s @1 -t work:2 ; swap-window -d -s @1 -t work:3 ; select-window -t @1 ; set-option -g @reorder_revamped_hit #{?#{&&:#{e|>=:#{mouse_x},9},#{e|<:#{mouse_x},23}},@2,#{?#{&&:#{e|>=:#{mouse_x},24},#{e|<:#{mouse_x},38}},@3,#{?#{&&:#{e|>=:#{mouse_x},39},#{e|<:#{mouse_x},52}},@1,#{?#{&&:#{e|>=:#{mouse_x},53},#{e|<:#{mouse_x},61}},@4,}}}}'
+
+  # Act
+  run reorder_slide work @1 @3 /dev/ttys000 1
+
+  # Assert
+  [[ "${output}" == "${expected}" ]]
+}
+
+@test "slide does nothing while the pointer stays on the grabbed tab" {
+  # Arrange
+  local source=@2
+
+  # Act
+  run reorder_slide work "${source}" @2 "" 1
+
+  # Assert
+  [[ "${status}" -eq 0 && -z "${output}" ]]
+}
+
+@test "slide does nothing when the pointer is off every tab" {
+  # Arrange
+  local target=""
+
+  # Act
+  run reorder_slide work @2 "${target}" "" 1
+
+  # Assert
+  [[ "${status}" -eq 0 && -z "${output}" ]]
+}
+
+@test "slide does nothing when the hovered window has closed" {
+  # Arrange
+  MOCK_WINDOWS=$'1 @1 13\n2 @2 14'
+
+  # Act
+  run reorder_slide work @1 @3 "" 1
+
+  # Assert
+  [[ "${status}" -eq 0 && -z "${output}" ]]
+}
+
+@test "slide does nothing when the grabbed window has closed" {
+  # Arrange
+  MOCK_WINDOWS=$'2 @2 14\n3 @3 14'
+
+  # Act
+  run reorder_slide work @1 @3 "" 1
+
+  # Assert
+  [[ "${status}" -eq 0 && -z "${output}" ]]
 }

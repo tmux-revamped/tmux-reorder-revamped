@@ -28,6 +28,7 @@ setup_test_environment() {
   unset _TMUX_PLUGIN_CACHE_LOADED
   unset _TMUX_PLUGIN_TMUX_OPS_LOADED
   unset _TMUX_REORDER_PLAN_LOADED
+  unset _TMUX_REORDER_BINDINGS_LOADED
 }
 
 cleanup_test_environment() {

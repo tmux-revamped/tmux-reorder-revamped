@@ -4,7 +4,7 @@
 
 [![Tests](https://github.com/tmux-revamped/tmux-reorder-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/tmux-revamped/tmux-reorder-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](CHANGELOG.md)
 
-Press a tab, drag it, and release it over another tab. The window moves to that position and the others shift over, the way browser tabs behave. Release it over `status-left` to make it the first window, or past the last tab to make it the last. Plain tmux, no patch, no polling: three mouse bindings and one short script that runs only when you let go.
+Press a tab and drag it along the bar. The tab travels with the pointer: each time the pointer enters another tab, the grabbed one takes its place and the others shift aside, the way browser tabs and desktop icons behave. Release it where you see it. Release over `status-left` to make it the first window, or past the last tab to make it the last. Plain tmux, no patch, no polling: the motion check runs inside tmux, and a short script runs only when the tab crosses into another one.
 
 Built from [tmux-plugin-template](https://github.com/tmux-revamped/tmux-plugin-template).
 
@@ -37,7 +37,8 @@ Then add `run-shell ~/.tmux/plugins/tmux-reorder-revamped/reorder-revamped.tmux`
 
 | Gesture | Result |
 |---|---|
-| Drag a tab and release it over another tab | The window moves to that tab's position |
+| Drag a tab over another tab | The grabbed tab slides into that position while you hold the button |
+| Release over another tab | The window stays where it slid to |
 | Release over `status-left` | The window becomes the first window |
 | Release over `status-right` | The window becomes the last window |
 | Release over empty space after the last tab | The window becomes the last window, when `status-justify` is `left` |
@@ -49,11 +50,21 @@ The dragged window stays the current window. Window indices keep their gaps: the
 
 | Option | Default | Description |
 |---|---|---|
-| `@reorder_revamped_mode` | `insert` | `insert` moves the window and shifts the ones in between. `swap` exchanges only the two windows |
+| `@reorder_revamped_mode` | `insert` | `insert` moves the window and shifts the ones in between. `swap` exchanges only the two windows, on release, with no live slide |
+| `@reorder_revamped_live` | `on` | `off` keeps the tabs still while you drag and moves the window only on release |
 | `@reorder_revamped_edges` | `on` | `off` leaves `status-left`, `status-right` and empty space unbound |
 | `@reorder_revamped_timeout` | `10` | Seconds of client activity after which a recorded drag is ignored. A drag you abandon over a pane cannot then move a window on a later, unrelated release |
 | `@reorder_revamped_enable_logging` | unset | `1` writes failed moves to `~/.tmux/reorder-revamped-logs/` |
-| `@reorder_revamped_source` | managed | Internal. Holds the grabbed window while a drag is in progress |
+| `@reorder_revamped_source` | managed | Internal. The grabbed window while a drag is in progress |
+| `@reorder_revamped_seen` | managed | Internal. Client activity at the latest motion of the drag |
+| `@reorder_revamped_hit` | managed | Internal. A format that maps the pointer column to the tab under it |
+| `@reorder_revamped_probe` | managed | Internal. The tab under the pointer at the latest motion |
+| `@reorder_revamped_hover` | managed | Internal. The tab the grabbed one last slid onto |
+| `@reorder_revamped_pressed` | managed | Internal. The tab under the latest press on the status bar |
+| `@reorder_revamped_pressed_at` | managed | Internal. Client activity at that press |
+| `@reorder_revamped_press_original` | managed | Internal. The `MouseDown1Status` command the plugin wraps |
+
+Mode, live and edges are read when the plugin loads; reload the config after changing them.
 
 ```tmux
 set -g @reorder_revamped_mode 'swap'
@@ -62,11 +73,13 @@ set -g @reorder_revamped_edges 'off'
 
 ## Key bindings
 
-All of them live in the root table, because a mouse gesture has no prefix. None of them is a stock tmux binding.
+All of them live in the root table, because a mouse gesture has no prefix. `MouseDown1Status` is the only stock tmux binding involved, and the plugin wraps it rather than replacing it: the original command, `switch-client -t =` by default, still runs after the press is recorded, and is saved in `@reorder_revamped_press_original` so a reload never wraps it twice.
 
 | Key | Action |
 |---|---|
-| `MouseDrag1Status` | Records the grabbed tab, with no process started |
+| `MouseDown1Status` | Records the tab you pressed, then runs the original press command |
+| `MouseUp1Status` | Forgets the press on a plain click. Left alone if you bound it yourself |
+| `MouseDrag1Status` | Records the grabbed tab on the first motion, then slides it whenever the pointer enters another tab |
 | `MouseDragEnd1Status` | Moves the grabbed window to the tab under the pointer |
 | `MouseDragEnd1StatusLeft` | Moves it first, when edges are on |
 | `MouseDragEnd1StatusRight` | Moves it last, when edges are on |
@@ -76,9 +89,11 @@ A press on a tab still selects the window through tmux's own `MouseDown1Status`.
 
 ## How it works
 
-While a drag that started on the status line is in progress, tmux reports every motion at the press position, so `MouseDrag1Status` always names the tab you grabbed. The release is reported where the pointer is, so `MouseDragEnd1Status` names the tab under it. The plugin stores the first in a server option with `set-option -F`, which starts no process, and on release runs `src/reorder.sh` once. That script reads the window list and moves the window with one tmux command made of adjacent `swap-window -d` steps.
+The first motion of a drag names the tab you pressed, and the plugin stores it in a server option with `set-option -F`, which starts no process. On tmux 3.8 and later, tmux keeps reporting that same tab for the whole drag but tracks the real pointer column in `mouse_x`. So when a drag starts, `src/reorder.sh grab` measures every tab with tmux's own `#{w:}` width modifier, the same arithmetic the status line uses, and stores a format that turns `mouse_x` into the tab under the pointer. Each motion evaluates that format inside tmux. On tmux 3.2 to 3.7, tmux reports the tab under the pointer directly, so no measuring is needed.
 
-A drag that starts inside a pane, such as a text selection, never records a source, so releasing it over the bar moves nothing. When the pane runs an app with mouse reporting, a drag that crosses the bar records the tab under the pointer, which is also the drop tab, so it still moves nothing.
+Only when the pointer enters a different tab does the plugin run `src/reorder.sh slide`, which moves the grabbed window with one tmux command made of adjacent `swap-window -d` steps and remeasures the tabs in the same command. Live measuring needs a left-justified, single-line status bar whose window list fits; otherwise the window moves on release only.
+
+A drag only counts when it began with a press on a tab within the last 10 seconds. A drag that starts inside a pane, such as a text selection in vim, never pressed a tab, so crossing or releasing over the bar moves nothing.
 
 ## Development
 

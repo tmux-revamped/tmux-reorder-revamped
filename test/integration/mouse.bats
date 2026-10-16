@@ -49,6 +49,15 @@ drag_on_row() {
   send_mouse 0 "${to}" "${row}" m
 }
 
+hold_drag_on_row() {
+  local row="${1}" from="${2}" to="${3}" step=1 column
+  ((from > to)) && step=-1
+  send_mouse 0 "${from}" "${row}" M
+  for ((column = from + step; column != to + step; column += step)); do
+    send_mouse 32 "${column}" "${row}" M
+  done
+}
+
 @test "dragging a tab onto another tab with the mouse reorders the windows" {
   # Arrange
   local from to
@@ -90,4 +99,17 @@ drag_on_row() {
 
   # Assert
   wait_until order_is "$(names_in_order 3 0 1 2)"
+}
+
+@test "the grabbed tab slides under the pointer before the button is released" {
+  # Arrange
+  local from to
+  from="$(column_of "${WINDOW_NAMES[0]}")"
+  to="$(column_of "${WINDOW_NAMES[2]}")"
+
+  # Act
+  hold_drag_on_row "${HOST_ROWS}" "${from}" "${to}"
+
+  # Assert
+  wait_until order_is "$(names_in_order 1 2 0 3)"
 }

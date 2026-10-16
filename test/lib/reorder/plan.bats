@@ -296,3 +296,80 @@ teardown() {
   # Assert
   [[ "${output}" == "'/a b/it'\\''s ##1/reorder.sh'" ]]
 }
+
+@test "reorder_moved_order inserts a window moved forward" {
+  # Arrange
+  local items=(a b c d)
+
+  # Act
+  run reorder_moved_order 0 2 "${items[@]}"
+
+  # Assert
+  [[ "${output}" == $'b\nc\na\nd' ]]
+}
+
+@test "reorder_moved_order inserts a window moved backward" {
+  # Arrange
+  local items=(a b c d)
+
+  # Act
+  run reorder_moved_order 3 1 "${items[@]}"
+
+  # Assert
+  [[ "${output}" == $'a\nd\nb\nc' ]]
+}
+
+@test "reorder_moved_order appends a window moved to the end" {
+  # Arrange
+  local items=(a b c d)
+
+  # Act
+  run reorder_moved_order 0 3 "${items[@]}"
+
+  # Assert
+  [[ "${output}" == $'b\nc\nd\na' ]]
+}
+
+@test "reorder_hit_format nests one span per tab" {
+  # Arrange
+  local spans=(@1:13 @2:14)
+
+  # Act
+  run reorder_hit_format 9 1 "${spans[@]}"
+
+  # Assert
+  [[ "${output}" == '#{?#{&&:#{e|>=:#{mouse_x},9},#{e|<:#{mouse_x},22}},@1,#{?#{&&:#{e|>=:#{mouse_x},23},#{e|<:#{mouse_x},37}},@2,}}' ]]
+}
+
+@test "reorder_hit_format prints an empty expression for no tabs" {
+  # Arrange
+  local start=9
+
+  # Act
+  run reorder_hit_format "${start}" 1
+
+  # Assert
+  [[ -z "${output}" ]]
+}
+
+@test "reorder_list_width adds a separator between tabs" {
+  # Arrange
+  local spans=(@1:13 @2:14 @3:8)
+
+  # Act
+  run reorder_list_width 1 "${spans[@]}"
+
+  # Assert
+  [[ "${output}" == "37" ]]
+}
+
+@test "reorder_list_width of one tab has no separator" {
+  # Arrange
+  local spans=(@1:13)
+
+  # Act
+  run reorder_list_width 3 "${spans[@]}"
+
+  # Assert
+  [[ "${output}" == "13" ]]
+}

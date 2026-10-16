@@ -65,7 +65,48 @@ reorder_edge_position() {
   esac
 }
 
+reorder_moved_order() {
+  local from="${1}" to="${2}"
+  shift 2
+  local items=("$@") position
+  local moving="${items[from]}"
+  local without=("${items[@]:0:from}" "${items[@]:from+1}")
+  for ((position = 0; position < ${#without[@]}; position++)); do
+    ((position == to)) && printf '%s\n' "${moving}"
+    printf '%s\n' "${without[position]}"
+  done
+  ((to >= ${#without[@]})) && printf '%s\n' "${moving}"
+  return 0
+}
+
+reorder_hit_format() {
+  local start="${1}" separator="${2}"
+  shift 2
+  local expression="" closing="" entry id width end
+  for entry in "$@"; do
+    id="${entry%%:*}"
+    width="${entry#*:}"
+    end=$((start + width))
+    expression="${expression}#{?#{&&:#{e|>=:#{mouse_x},${start}},#{e|<:#{mouse_x},${end}}},${id},"
+    closing="${closing}}"
+    start=$((end + separator))
+  done
+  printf '%s%s\n' "${expression}" "${closing}"
+}
+
+reorder_list_width() {
+  local separator="${1}" total=0 count=0 entry
+  shift
+  for entry in "$@"; do
+    total=$((total + ${entry#*:}))
+    count=$((count + 1))
+  done
+  ((count > 1)) && total=$((total + separator * (count - 1)))
+  printf '%s\n' "${total}"
+}
+
 reorder_quote_for_run_shell() {
-  local value="${1//\'/\'\\\'\'}"
+  local quote="'" escaped="'\\''"
+  local value="${1//"${quote}"/${escaped}}"
   printf "'%s'" "${value//#/##}"
 }

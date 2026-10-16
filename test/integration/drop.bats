@@ -105,3 +105,16 @@ teardown() {
   [[ "${output}" == *"MouseDragEnd1StatusRight"*" edge last "* ]]
   [[ "${output}" == *"MouseDragEnd1StatusDefault"*" edge trailing "* ]]
 }
+
+@test "sliding onto a tab moves the grabbed window there on a real server" {
+  # Arrange
+  local source target
+  source="$(window_id_of "${WINDOW_NAMES[3]}")"
+  target="$(window_id_of "${WINDOW_NAMES[0]}")"
+
+  # Act
+  bash "${REORDER_SCRIPT}" slide "$(test_session_id)" "${source}" "${target}" "" 0
+
+  # Assert
+  [[ "$(window_order)" == "$(names_in_order 3 0 1 2)" ]]
+}
