@@ -56,6 +56,19 @@ binding_for() {
   [[ "$(binding_for MouseDown1Status)" == "tmux bind-key -n MouseDown1Status set-option -gF -t = @reorder_revamped_pressed #{window_id} \\; set-option -gF @reorder_revamped_pressed_at #{client_activity} \\; if-shell -F 1 switch-client -t =" ]]
 }
 
+@test "apply keeps the root press command when another table binds the same key" {
+  # Arrange
+  MOCK_KEYS="$(printf '%s\n' \
+    "bind-key    -T copy-mode    MouseDown1Status          select-pane" \
+    "bind-key    -T root         MouseDown1Status          switch-client -t =")"
+
+  # Act
+  run reorder_apply
+
+  # Assert
+  [[ "$(binding_for MouseDown1Status)" == *"\\; if-shell -F 1 switch-client -t =" ]]
+}
+
 @test "apply reuses the saved press command instead of wrapping its own wrapper" {
   # Arrange
   MOCK_KEYS="bind-key -T root MouseDown1Status set-option -Fg -t = @reorder_revamped_pressed x"

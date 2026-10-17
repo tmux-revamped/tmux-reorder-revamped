@@ -35,6 +35,6 @@ mock_query() {
       ;;
     list-windows) printf '%s\n' "${MOCK_WINDOWS}" ;;
     show-option) mock_option "${3}" ;;
-    list-keys) printf '%s\n' "${MOCK_KEYS}" | grep -F -- " ${4} " || true ;;
+    list-keys) if [[ $# -eq 1 ]]; then printf '%s\n' "${MOCK_KEYS}"; fi ;;
   esac
 }

@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Tabs slide while dragged when the plugin directory path contains a single
   quote, a double quote, a dollar sign or a backslash.
+- On tmux 3.7 to 3.7c, clicking a tab switches to that window again. Those
+  versions print a single `list-keys` match to the status line instead of
+  returning it, so the stock click binding was lost when the plugin wrapped it.
 
 ## [1.0.0] - 2026-10-16
 

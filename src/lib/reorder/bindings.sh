@@ -31,7 +31,7 @@ reorder_bind_edge() {
 
 reorder_release_edge() {
   local key="${1}"
-  [[ "$(_query list-keys -T root "${key}" 2>/dev/null)" == *"${REORDER_SELF}"* ]] || return 0
+  [[ "$(reorder_binding_command "${key}")" == *"${REORDER_SELF}"* ]] || return 0
   _tmux unbind-key -n "${key}"
 }
 
@@ -84,8 +84,8 @@ reorder_bind_grab() {
 }
 
 reorder_binding_command() {
-  _query list-keys -T root "${1}" 2>/dev/null |
-    sed -E "s/^bind-key[[:space:]]+(-[a-zA-Z][[:space:]]+)*-T[[:space:]]+root[[:space:]]+${1}[[:space:]]+//"
+  _query list-keys 2>/dev/null |
+    sed -nE "s/^bind-key[[:space:]]+(-[a-zA-Z][[:space:]]+)*-T[[:space:]]+root[[:space:]]+${1}[[:space:]]+//p"
 }
 
 reorder_press_original() {
