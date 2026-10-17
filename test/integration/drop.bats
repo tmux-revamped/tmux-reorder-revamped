@@ -12,6 +12,21 @@ teardown() {
   stop_reorder_server
 }
 
+@test "the test server starts without reading the user config" {
+  # Arrange
+  teardown_tmux_server
+  local home="${TEST_TMPDIR}/home"
+  mkdir -p "${home}/.config/tmux"
+  printf 'set-option -g @reorder_test_config_leak loaded\n' >"${home}/.tmux.conf"
+  printf 'set-option -g @reorder_test_config_leak loaded\n' >"${home}/.config/tmux/tmux.conf"
+
+  # Act
+  HOME="${home}" XDG_CONFIG_HOME="${home}/.config" setup_tmux_server
+
+  # Assert
+  [[ -z "$(get_option @reorder_test_config_leak)" ]]
+}
+
 @test "dropping the first window on the third inserts it there" {
   # Arrange
   local source target
