@@ -17,7 +17,15 @@ setup() {
   wait_until status_shows "${WINDOW_NAMES[3]}"
 }
 
+dump_reorder_state() {
+  printf 'order: %s\n' "$(window_order)"
+  printf 'status: %s\n' "$(status_line)"
+  tmux list-keys -T root 2>/dev/null | grep -E 'Mouse(Down|Drag|DragEnd|Up)1Status'
+  tmux show-options -g 2>/dev/null | grep -E '^@reorder'
+}
+
 teardown() {
+  [[ -n "${BATS_TEST_COMPLETED:-}" ]] || dump_reorder_state 2>&1 | sed 's/^/# /' >&3 || true
   command tmux -S "${HOST_SOCKET}" kill-server 2>/dev/null || true
   rm -f "${HOST_SOCKET}"
   stop_reorder_server
