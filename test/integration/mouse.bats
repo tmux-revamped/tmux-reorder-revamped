@@ -22,6 +22,7 @@ dump_reorder_state() {
   printf 'status: %s\n' "$(status_line)"
   tmux list-keys -T root 2>/dev/null | grep -E 'Mouse(Down|Drag|DragEnd|Up)1Status'
   tmux show-options -g 2>/dev/null | grep -E '^@reorder'
+  tmux show-messages 2>/dev/null | tail -n 20
 }
 
 teardown() {
