@@ -297,6 +297,17 @@ teardown() {
   [[ "${output}" == "'/a b/it'\\''s ##1/reorder.sh'" ]]
 }
 
+@test "reorder_quote_for_tmux_double escapes backslashes, double quotes and dollars" {
+  # Arrange
+  local command="bash '/a/it'\\''s \"x\" \$HOME/reorder.sh'"
+
+  # Act
+  run reorder_quote_for_tmux_double "${command}"
+
+  # Assert
+  [[ "${output}" == "bash '/a/it'\\\\''s \\\"x\\\" \\\$HOME/reorder.sh'" ]]
+}
+
 @test "reorder_moved_order inserts a window moved forward" {
   # Arrange
   local items=(a b c d)

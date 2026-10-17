@@ -52,15 +52,18 @@ reorder_apply_edges() {
 reorder_grab_commands() {
   local live="${1}" self="${2}" pressed="#{${REORDER_PRESS_OPTION}}"
   local record="set-option -gF ${REORDER_SOURCE_OPTION} '${pressed}' ; set-option -gF ${REORDER_HOVER_OPTION} '${pressed}'"
+  local grab
+  grab="$(reorder_quote_for_tmux_double "bash ${self} grab '#{session_id}' '#{client_name}'")"
   [[ "${live}" == "${REORDER_LIVE_COMPUTED}" ]] &&
-    record="${record} ; run-shell \"bash ${self} grab '#{session_id}' '#{client_name}'\""
+    record="${record} ; run-shell \"${grab}\""
   printf '%s\n' "${record}"
 }
 
 reorder_slide_commands() {
   local live="${1}" self="${2}" recompute=0
   [[ "${live}" == "${REORDER_LIVE_COMPUTED}" ]] && recompute=1
-  local slide="bash ${self} slide '#{session_id}' '#{${REORDER_SOURCE_OPTION}}' '#{${REORDER_PROBE_OPTION}}' '#{client_name}' ${recompute}"
+  local slide
+  slide="$(reorder_quote_for_tmux_double "bash ${self} slide '#{session_id}' '#{${REORDER_SOURCE_OPTION}}' '#{${REORDER_PROBE_OPTION}}' '#{client_name}' ${recompute}")"
   printf '%s\n' "set-option -gF ${REORDER_HOVER_OPTION} '#{${REORDER_PROBE_OPTION}}' ; run-shell \"${slide}\""
 }
 

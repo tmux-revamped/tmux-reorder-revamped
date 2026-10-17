@@ -110,3 +110,15 @@ reorder_quote_for_run_shell() {
   local value="${1//"${quote}"/${escaped}}"
   printf "'%s'" "${value//#/##}"
 }
+
+reorder_quote_for_tmux_double() {
+  local value="${1}" escaped="" character index
+  for ((index = 0; index < ${#value}; index++)); do
+    character="${value:index:1}"
+    case "${character}" in
+      '\' | '"' | '$') escaped="${escaped}\\${character}" ;;
+      *) escaped="${escaped}${character}" ;;
+    esac
+  done
+  printf '%s' "${escaped}"
+}

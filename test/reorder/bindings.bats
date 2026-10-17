@@ -233,3 +233,17 @@ binding_for() {
   run binding_for SecondClick1Status
   [[ "${status}" -eq 1 ]]
 }
+
+@test "apply escapes a quoted plugin path inside the grab and slide commands" {
+  # Arrange
+  REORDER_SELF="/plug/it's/reorder.sh"
+  local grab=$'run-shell "bash \'/plug/it\'\\\\\'\'s/reorder.sh\' grab '
+  local slide=$'run-shell "bash \'/plug/it\'\\\\\'\'s/reorder.sh\' slide '
+
+  # Act
+  run reorder_apply
+
+  # Assert
+  [[ "$(binding_for MouseDrag1Status)" == *"${grab}"* ]] || false
+  [[ "$(binding_for MouseDrag1Status)" == *"${slide}"* ]]
+}

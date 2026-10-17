@@ -113,3 +113,19 @@ hold_drag_on_row() {
   # Assert
   wait_until order_is "$(names_in_order 1 2 0 3)"
 }
+
+@test "a plugin path holding a single quote still slides the grabbed tab" {
+  # Arrange
+  local copy="${TEST_TMPDIR}/it's plugin" from to
+  mkdir -p "${copy}"
+  cp -R "${PLUGIN_DIR}/src" "${PLUGIN_DIR}/reorder-revamped.tmux" "${copy}/"
+  tmux run-shell "bash $(printf '%q' "${copy}/reorder-revamped.tmux")"
+  from="$(column_of "${WINDOW_NAMES[0]}")"
+  to="$(column_of "${WINDOW_NAMES[2]}")"
+
+  # Act
+  hold_drag_on_row "${HOST_ROWS}" "${from}" "${to}"
+
+  # Assert
+  wait_until order_is "$(names_in_order 1 2 0 3)"
+}
