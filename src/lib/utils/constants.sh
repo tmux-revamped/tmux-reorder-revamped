@@ -4,7 +4,7 @@
 [[ -n "${_TMUX_PLUGIN_CONSTANTS_LOADED:-}" ]] && return 0
 _TMUX_PLUGIN_CONSTANTS_LOADED=1
 
-readonly REORDER_REVAMPED_VERSION="1.0.0"
+readonly REORDER_REVAMPED_VERSION="1.0.1"
 readonly REORDER_MIN_TMUX="3.2"
 readonly REORDER_LIVE_MIN_TMUX="3.8"
 readonly REORDER_SOURCE_OPTION="@reorder_revamped_source"

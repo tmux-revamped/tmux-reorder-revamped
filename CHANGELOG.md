@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-27
+
 ### Fixed
 
+- The plugin loads under TPM. Its entry point was committed without the
+  executable bit, and TPM runs an entry point as a program and discards its
+  errors, so no binding was ever installed.
 - Tabs slide while dragged when the plugin directory path contains a single
   quote, a double quote, a dollar sign or a backslash.
 - On tmux 3.7 to 3.7c, clicking a tab switches to that window again. Those
