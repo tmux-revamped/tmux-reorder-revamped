@@ -8,52 +8,43 @@ Guidance for anyone, human or agent, changing tmux-reorder-revamped. What it is 
 
 | Path | Holds |
 |:-----|:------|
-| [`reorder-revamped.tmux`](reorder-revamped.tmux) | The entry point TPM runs |
-| [`src/reorder.sh`](src/reorder.sh) | The script the entry point and the keys call |
-| [`src/lib/reorder/`](src/lib/reorder) | This member's modules |
-| [`src/lib/utils/constants.sh`](src/lib/utils/constants.sh) | This member's constants, including its version |
-| [`src/lib/utils/`](src/lib/utils), [`src/lib/tmux/`](src/lib/tmux) | The shared library. Every file there except `constants.sh` is identical in every member |
-| [`test/`](test) | The bats suite. `helpers.bash` and `tmux_helpers.bash` are identical in every member; this member's own mocks go in the `_local` files |
+| [`reorder-revamped.tmux`](reorder-revamped.tmux) | The entry point TPM runs: it runs `bin/reorder-revamped apply` |
+| [`bin/reorder-revamped`](bin/reorder-revamped) | The command: `apply`, `list`, `grab`, `slide`, `drop`, `edge`, `doctor`, `version`, `help` and the menu. `apply` and the four drag commands run without loading the interface modules |
+| [`lib/reorder.sh`](lib/reorder.sh) | Reading the settings, the binding plan, the tab measurement and the moves |
+| [`lib/state.sh`](lib/state.sh) | Every global, including `REORDER_REVAMPED_SETTINGS`, the table of setting names and defaults the rest reads, and the names of the drag state options |
+| [`lib/core.sh`](lib/core.sh) | The version |
+| [`lib/`](lib) | Every other file is the shared library, identical in every member |
+| [`test/reorder.bats`](test/reorder.bats), [`test/commands.bats`](test/commands.bats), [`test/entrypoint.bats`](test/entrypoint.bats), [`test/mouse.bats`](test/mouse.bats) | This member's suites: the library, the commands, the bindings and moves on a private tmux server, and real mouse drags sent from a second tmux attached to it |
+| [`screens/`](screens) | The tapes and the recording's tmux config, with the status line on top so the tapes can drag tabs at fixed columns |
 
 ## Names
 
-- Settings are tmux options named `@reorder_revamped_<setting>`.
+- Settings are the tmux options `@reorder_revamped_<setting>` listed in `REORDER_REVAMPED_SETTINGS`, the long options with dashes, such as `--edges`, and the environment variables `REORDER_REVAMPED_<SETTING>`.
+- The plugin writes its drag state to `@reorder_revamped_source`, `_seen`, `_hit`, `_probe`, `_hover`, `_pressed`, `_pressed_at` and `_press_original`; they are state, never settings.
 - It has no status placeholders.
-- Public functions carry `reorder_`; private ones start with `_`.
 - The version constant is `REORDER_REVAMPED_VERSION`.
-- Its command-line tool, once it exists, is `reorder-revamped`.
 
 ## Behaviour
 
-- Moves a window by dragging its tab along the status line with the mouse.
-- It binds the status line mouse keys in the root table, declared in the family key allocation.
-- The first motion of a drag stores the pressed tab in a server option with `set-option -F`, which starts no process. Only when the pointer enters a different tab does `src/reorder.sh slide` run.
+- `apply` reads every setting, the status justification and the saved press command with one `tmux display-message` call, reads `list-keys` once, builds the plan, and sends every binding to tmux in one call separated by `;`.
+- `drop` and `edge` read the mode and the timeout from the tmux options when they run, so a setting given to `apply` on the command line shapes only the bindings.
+- An empty tmux option means its default.
+- The entry point clears every inherited `REVAMPED_` variable except the test switches, and every `REORDER_REVAMPED_*_LOADED` guard; every other global is assigned outright in the state file.
+- It binds the status line mouse keys in the root table, declared in the family key allocation, and no prefix key.
 
 ## Domain rules
 
-- On tmux 3.2 to 3.7 tmux reports the tab under the pointer; on 3.8 and later it keeps reporting the tab where the drag started, so `grab` measures every tab with the `#{w:}` width modifier and tracks `mouse_x`.
-- A slide is one tmux command of adjacent `swap-window -d` steps that also remeasures the tabs.
+- The first motion of a drag stores the pressed tab with `set-option -F`, which starts no process; `slide` runs only when the pointer enters a different tab.
+- On tmux 3.2 to 3.7 tmux reports the tab under the pointer; on 3.8 and later it keeps reporting the tab where the drag started, so `grab` measures every tab with the `#{w:}` width modifier and the drag maps `mouse_x` through the stored format.
+- A move is one tmux command of adjacent `swap-window -d` steps by real window index, followed by `select-window`, and a slide that remeasures writes the new format in the same command.
 - A drag counts only when it began with a press on a tab within the last 10 seconds, so a selection that starts in a pane moves nothing.
+- `MouseDown1Status` is wrapped, never replaced: the command bound before the plugin is saved once in `@reorder_revamped_press_original` and runs after the press is recorded. A release or click binding the person owns is left alone, and turning edges off unbinds only edge bindings that clear `@reorder_revamped_source`.
 
 ## Release
 
-- `REORDER_REVAMPED_VERSION` in [`src/lib/utils/constants.sh`](src/lib/utils/constants.sh) holds the version. It must equal the newest versioned heading in [`CHANGELOG.md`](CHANGELOG.md) and the README's version badge, which the `version` job in `tests.yml` checks.
-- A push to `main` whose version has no tag yet makes the `release` job in `tests.yml` tag `vX.Y.Z` and publish a GitHub release with that changelog section.
-- Unreleased changes sit under `## [Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md) until a release is cut.
+- `REORDER_REVAMPED_VERSION` in [`lib/core.sh`](lib/core.sh) holds the version. Nobody edits it by hand.
+- After a green `ci` run on `main`, [`release.yml`](.github/workflows/release.yml) runs semantic-release: a `feat` or `fix` since the last tag publishes a release, [`set-version.sh`](.github/scripts/set-version.sh) stamps the constant, and the notes go into [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Gaps against FAMILY.md
 
-As of 2026-11-15:
-
-- Every script is bash, under `#!/usr/bin/env bash`, not POSIX `sh`, so it is untested under `dash`, `zsh` and BusyBox `sh`.
-- The code lives in [`src/`](src) and [`src/lib/`](src/lib); there is no `bin/reorder-revamped`, `lib/state.sh` or `lib/core.sh`.
-- No `reorder-revamped` command with `help`, `version` and `doctor` in the family's form, no man page, no completions and no `manifest.json`.
-- No gum interface: no `lib/ui.sh`, `lib/table.awk`, themes or `test/bin/gum`.
-- No `screens/`: no VHS recording of each feature, no on-screen caption of the keys each recording presses, and no recordings in the README.
-- The README sections are not the family's order of Quick start, Usage, topic sections, Portability, Development and License.
-- Coverage is kcov with a 95 percent floor on Linux, not bashcov at 100 percent merged from macOS and Linux.
-- CI tests GNU, BSD and uutils tools in `tests.yml`, but not the six toolsets through `.github/scripts/toolset.sh`, and no shell matrix under `sh`, `dash`, `bash` and `zsh`.
-- No golden transcripts, `call.sh`, `run-matrix.sh` or `linux-container.sh`.
-- The version is written by hand and released by `tests.yml`; there is no semantic-release, `package.json`, `release.yml` with `recover`, `bot-merge.yml` or Renovate.
-- CI is `tests.yml` and `security.yml`, not `ci.yml`, and no job starts with `step-security/harden-runner`.
-- No `.editorconfig`, `.yamllint.yml` or shfmt; the Makefile has `help`, `test`, `test-unit`, `coverage`, `lint` and `clean`, not the family's targets.
+As of 2026-11-16, none.

@@ -4,57 +4,64 @@
 
 <strong>Drag a window tab along the tmux status bar with the mouse to move that window.</strong>
 
-English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁體中文（香港）](README.zh-HK.md)
+English &nbsp;|&nbsp; [日本語](README.ja.md) &nbsp;|&nbsp; [简体中文](README.zh-Hans.md) &nbsp;|&nbsp; [繁體中文（香港）](README.zh-HK.md)
 
-[![family](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-reorder-revamped/family.yml?branch=main&style=flat-square&label=family)](https://github.com/tmux-revamped/tmux-reorder-revamped/actions/workflows/family.yml)
-[![tests](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-reorder-revamped/tests.yml?branch=main&style=flat-square&label=tests)](https://github.com/tmux-revamped/tmux-reorder-revamped/actions/workflows/tests.yml)
+[![ci](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-reorder-revamped/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/tmux-revamped/tmux-reorder-revamped/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/tmux-revamped/tmux-reorder-revamped?style=flat-square&label=release)](https://github.com/tmux-revamped/tmux-reorder-revamped/releases/latest)
 [![openssf scorecard](https://img.shields.io/ossf-scorecard/github.com/tmux-revamped/tmux-reorder-revamped?style=flat-square&label=openssf%20scorecard)](https://scorecard.dev/viewer/?uri=github.com/tmux-revamped/tmux-reorder-revamped)
 [![license](https://img.shields.io/github/license/tmux-revamped/tmux-reorder-revamped?style=flat-square&label=license)](LICENSE)
 
 <p align="center">
-  <a href="#what-it-does">What it does</a> |
-  <a href="#installation">Installation</a> |
-  <a href="#usage">Usage</a> |
-  <a href="#configuration">Configuration</a> |
-  <a href="#key-bindings">Key bindings</a> |
-  <a href="#how-it-works">How it works</a>
+  <a href="#quick-start"><strong>Quick start</strong></a> &nbsp;|&nbsp;
+  <a href="#usage">Usage</a> &nbsp;|&nbsp;
+  <a href="#how-it-works">How it works</a> &nbsp;|&nbsp;
+  <a href="#screens">Screens</a>
 </p>
 
 </div>
 
-**9 root-table mouse bindings. No polling. One tmux command per slide. Tested on macOS and Linux.**
+<p align="center">
+  <img src="screens/hero.gif" alt="reorder-revamped moving windows as their tabs are dragged along the status line" width="800">
+</p>
+
+```console
+$ reorder-revamped list | cut -c1-72
+set-option -g @reorder_revamped_hit #{window_id}
+set-option -g @reorder_revamped_press_original switch-client -t =
+bind-key -n MouseDown1Status set-option -gF -t = @reorder_revamped_press
+bind-key -n SecondClick1Status set-option -gF -t = @reorder_revamped_pre
+bind-key -n TripleClick1Status set-option -gF -t = @reorder_revamped_pre
+bind-key -n MouseUp1Status set-option -gu @reorder_revamped_pressed \; s
+bind-key -n MouseDrag1Status if-shell -F #{&&:#{@reorder_revamped_presse
+bind-key -n MouseDragEnd1Status run-shell -b -t = '/home/user/.tmux/plug
+bind-key -n MouseDragEnd1StatusLeft run-shell -b '/home/user/.tmux/plugi
+bind-key -n MouseDragEnd1StatusRight run-shell -b '/home/user/.tmux/plug
+bind-key -n MouseDragEnd1StatusDefault run-shell -b '/home/user/.tmux/pl
+```
+
+Press a tab, drag it along the status bar and let go: the window moves there and the tabs in between shift over. The tab slides under the pointer while you drag, a drop on the session name or the right end moves the window to the start or the end, and a press on a tab still selects its window as before.
 
 ---
 
-## What it does
+## Quick start
 
-Press a tab and drag it along the bar. The tab travels with the pointer: each time the pointer enters another tab, the grabbed one takes its place and the others shift aside, the way browser tabs behave. Release it where you see it. Release over `status-left` to make it the first window, or past the last tab to make it the last.
+### Prerequisites
 
-It is plain tmux, with no patch and no polling. The motion check runs inside tmux, and a short script runs only when the tab crosses into another one.
+| Tool | Version | Used for |
+|:-----|:--------|:---------|
+| tmux | 3.2 or later | the drag and drop; the live slide measures the tabs on 3.8 and later |
+| gum | optional | the menu, tables and colours of `reorder-revamped`; without it every command prints plain text |
 
-## Requirements
-
-| Requirement | Version or note |
-|:------------|:----------------|
-| tmux | 3.2 or later. On an older tmux the plugin binds nothing. Tabs slide under the pointer on every supported version, with a measured hit test on 3.8 and later |
-| Mouse | `set -g mouse on` |
-| bash | 3.2 or later, so the stock macOS `/bin/bash` works |
-| Operating system | macOS on Apple Silicon and Intel, Linux on x86_64 and arm64 |
-| Core tools | BSD, GNU or uutils coreutils |
-
-## Installation
-
-With [TPM](https://github.com/tmux-plugins/tpm), add the plugin to `~/.tmux.conf` and press `prefix + I`:
+### Install
 
 ```tmux
-set -g mouse on
 set -g @plugin 'tmux-revamped/tmux-reorder-revamped'
+set -g mouse on
 ```
 
-Without TPM, clone the repository and run the entry point from `~/.tmux.conf`:
+Then press `prefix + I`. Without TPM, clone the repository and run its entry point from `~/.tmux.conf`:
 
-```sh
+```bash
 git clone https://github.com/tmux-revamped/tmux-reorder-revamped ~/.tmux/plugins/tmux-reorder-revamped
 ```
 
@@ -62,91 +69,140 @@ git clone https://github.com/tmux-revamped/tmux-reorder-revamped ~/.tmux/plugins
 run-shell ~/.tmux/plugins/tmux-reorder-revamped/reorder-revamped.tmux
 ```
 
-## Usage
+`make install` in the clone also puts `reorder-revamped` in `~/.local/bin`, with its man page and completions under `~/.local/share`.
 
-| Gesture | Result |
-|:--------|:-------|
-| Drag a tab over another tab | The grabbed tab slides into that position while you hold the button |
-| Release over another tab | The window stays where it slid to |
-| Release over `status-left` | The window becomes the first window |
-| Release over `status-right` | The window becomes the last window |
-| Release over empty space after the last tab | The window becomes the last window, when `status-justify` is `left` |
-| Release over the tab you grabbed | Nothing moves |
+### Verify
 
-The dragged window stays the current window. Window indexes keep their gaps: the windows trade places, and no index is renumbered.
-
-## Configuration
-
-Set any option in `~/.tmux.conf` before the plugin loads. Mode, live and edges are read at load time, so reload the config after changing them.
-
-| Option | Default | Meaning |
-|:-------|:--------|:--------|
-| `@reorder_revamped_mode` | `insert` | `insert` moves the window and shifts the ones in between. `swap` exchanges only the two windows, on release, with no live slide |
-| `@reorder_revamped_live` | `on` | `off` keeps the tabs still while you drag and moves the window only on release |
-| `@reorder_revamped_edges` | `on` | `off` leaves `status-left`, `status-right` and the empty space unbound |
-| `@reorder_revamped_timeout` | `10` | Seconds of client activity after which a recorded drag is ignored, so a drag abandoned over a pane cannot move a window on a later release |
-| `@reorder_revamped_enable_logging` | unset | `1` writes failed moves to `~/.tmux/reorder-revamped-logs/` |
-
-```tmux
-set -g @reorder_revamped_mode 'swap'
-set -g @reorder_revamped_edges 'off'
+```bash
+~/.tmux/plugins/tmux-reorder-revamped/bin/reorder-revamped doctor
 ```
 
-### Internal state
+## Usage
 
-The plugin manages these options itself. Do not set them.
+With tmux's `mouse` option on, drag a tab. All bindings live in the root table, because a mouse gesture has no prefix; the plugin binds no prefix key.
 
-| Option | Holds |
-|:-------|:------|
-| `@reorder_revamped_source` | The grabbed window while a drag is in progress |
-| `@reorder_revamped_seen` | Client activity at the latest motion of the drag |
-| `@reorder_revamped_hit` | A format that maps the pointer column to the tab under it |
-| `@reorder_revamped_probe` | The tab under the pointer at the latest motion |
-| `@reorder_revamped_hover` | The tab the grabbed one last slid onto |
-| `@reorder_revamped_pressed` | The tab under the latest press on the status bar |
-| `@reorder_revamped_pressed_at` | Client activity at that press |
-| `@reorder_revamped_press_original` | The `MouseDown1Status` command the plugin wraps |
-
-## Key bindings
-
-All bindings live in the root table, because a mouse gesture has no prefix. The plugin binds no prefix key.
-
-| Key | Action |
-|:----|:-------|
-| `MouseDown1Status` | Records the tab you pressed, then runs the original press command |
-| `SecondClick1Status`, `TripleClick1Status` | Record the press too, because tmux reports a press soon after a click as a repeated click. Left alone when you bound them yourself |
-| `MouseUp1Status` | Forgets the press on a plain click. Left alone when you bound it yourself |
-| `MouseDrag1Status` | Records the grabbed tab on the first motion, then slides it whenever the pointer enters another tab |
-| `MouseDragEnd1Status` | Moves the grabbed window to the tab under the pointer |
-| `MouseDragEnd1StatusLeft` | Moves it first, when edges are on |
-| `MouseDragEnd1StatusRight` | Moves it last, when edges are on |
-| `MouseDragEnd1StatusDefault` | Moves it last when the window list is left-justified, when edges are on |
-
-`MouseDown1Status` is the only stock binding involved, and the plugin wraps it rather than replacing it. The original command, `switch-client -t =` by default, still runs after the press is recorded, so a press on a tab still selects the window. The original is saved in `@reorder_revamped_press_original`, so a reload never wraps it twice.
-
-## How it works
-
-**Grabbing.** The first motion of a drag names the tab you pressed, and the plugin stores it in a server option with `set-option -F`, which starts no process.
-
-**Finding the tab under the pointer.** On tmux 3.2 to 3.7, tmux reports the tab under the pointer directly. On tmux 3.8 and later, it keeps reporting the tab where the drag started and tracks the real column in `mouse_x`. So when a drag starts there, `src/reorder.sh grab` measures every tab with tmux's own `#{w:}` width modifier, the arithmetic the status line itself uses, and stores a format that turns `mouse_x` into the tab under the pointer. Each motion evaluates that format inside tmux.
-
-**Sliding.** Only when the pointer enters a different tab does the plugin run `src/reorder.sh slide`. It moves the grabbed window with one tmux command made of adjacent `swap-window -d` steps and remeasures the tabs in the same command. Measuring needs a left-justified, single-line status bar whose window list fits. Otherwise the window moves on release only.
-
-**Ignoring stray drags.** A drag counts only when it began with a press on a tab within the last 10 seconds. A drag that starts inside a pane, such as a text selection in vim, never pressed a tab, so crossing or releasing over the bar moves nothing.
-
-## Development
+| Mouse | Action |
+|:------|:-------|
+| Press a tab | Records the tab, then runs the press command that was there before, `switch-client -t =` by default |
+| Drag a tab | Slides the window under the pointer whenever the pointer enters another tab |
+| Release on a tab | Moves the window to that tab |
+| Release on the session name | Moves the window first, when edges are on |
+| Release on the right end | Moves the window last, when edges are on |
+| Release on the empty space | Moves the window last when the window list is left-justified, when edges are on |
 
 | Command | What it does |
 |:--------|:-------------|
-| `make test` | Runs the bats suite |
-| `make lint` | Runs shellcheck on every shell file |
-| `make coverage` | Measures line coverage with kcov and fails below 95 percent, on Linux |
+| `reorder-revamped apply` | Binds the mouse keys now; the entry point runs it when tmux loads the plugin |
+| `reorder-revamped list` | Prints every binding apply would make; `--json` prints one object |
+| `reorder-revamped grab`, `slide`, `drop`, `edge` | Run from the mouse bindings: measure the tabs, slide, drop on a tab, drop on an end |
+| `reorder-revamped doctor` | One row per dependency |
+| `reorder-revamped version` | The version, then the tmux version |
+| `reorder-revamped help` | The help page; `man reorder-revamped` documents the same commands and settings |
+| `reorder-revamped` | On a terminal, a menu |
 
-The integration tests start their own tmux servers on private sockets with an empty config. The mouse tests attach a client of one test server inside a second one and type SGR mouse sequences into it.
+| tmux option | Default | Meaning |
+|:------------|:--------|:--------|
+| `@reorder_revamped_mode` | `insert` | `insert` moves the window and shifts the ones in between; `swap` exchanges only the two windows, on release, with no live slide |
+| `@reorder_revamped_live` | `on` | `off` keeps the tabs still while you drag and moves the window only on release |
+| `@reorder_revamped_edges` | `on` | `off` leaves the session name, the right end and the empty space unbound |
+| `@reorder_revamped_timeout` | `10` | Seconds of client activity after which a recorded drag is ignored, so a drag abandoned over a pane cannot move a window on a later release |
+| `@reorder_revamped_enable_logging` | unset | `1` writes failed moves to `~/.tmux/reorder-revamped-logs/` |
+
+Mode, live and edges shape the bindings, so run `reorder-revamped apply` or reload the config after changing them. Every option is also a command option with dashes, such as `--edges off`, and an environment variable, such as `REORDER_REVAMPED_EDGES`; the command line wins over the environment, and the environment over the tmux option. An empty tmux option means its default.
+
+The plugin keeps its drag state in `@reorder_revamped_source`, `_seen`, `_hit`, `_probe`, `_hover`, `_pressed`, `_pressed_at` and `_press_original`. Do not set them.
+
+<a id="how-it-works"></a>
+
+## How it works
+
+The first motion of a drag names the tab you pressed and stores it in a server option with `set-option -F`, which starts no process. On tmux 3.2 to 3.7, tmux reports the tab under the pointer directly. On 3.8 and later it keeps reporting the tab where the drag started, so `grab` measures every tab with tmux's own `#{w:}` width modifier when the drag starts and stores a format that turns `mouse_x` into the tab under the pointer.
+
+Only when the pointer enters a different tab does `slide` run: one tmux command of adjacent `swap-window -d` steps that also remeasures the tabs. Measuring needs a left-justified, single-line status bar whose window list fits; otherwise the window moves on release only.
+
+A drag counts only when it began with a press on a tab within the last 10 seconds, so a text selection that starts in a pane and crosses the bar moves nothing.
+
+<a id="screens"></a>
+
+## Screens
+
+<details>
+<summary>Every screen, recorded inside a real tmux with <code>make screens</code>, with each mouse gesture and key on the status line</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/drag.png" alt="reorder-revamped: A tab dragged onto another tab"><br><sub>A tab dragged onto another tab, from <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/edge-first.png" alt="reorder-revamped: A tab dropped on the session name moves first"><br><sub>A tab dropped on the session name moves first, from <code>hero.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/edge-last.png" alt="reorder-revamped: A tab dropped on the empty space moves last"><br><sub>A tab dropped on the empty space moves last, from <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/swap.png" alt="reorder-revamped: @reorder_revamped_mode swap exchanges two windows"><br><sub><code>@reorder_revamped_mode swap</code> exchanges two windows, from <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/live-off.png" alt="reorder-revamped: @reorder_revamped_live off keeps the tabs still while dragging"><br><sub><code>@reorder_revamped_live off</code> keeps the tabs still while dragging, from <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/edges-off.png" alt="reorder-revamped: @reorder_revamped_edges off ignores the empty space"><br><sub><code>@reorder_revamped_edges off</code> ignores the empty space, from <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/menu.png" alt="reorder-revamped: The menu"><br><sub>The menu, from <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="reorder-revamped: doctor"><br><sub><code>doctor</code>, from <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/list.png" alt="reorder-revamped: list"><br><sub><code>list</code>, from <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/json.png" alt="reorder-revamped: list --json"><br><sub><code>list --json</code>, from <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/plain-menu.png" alt="reorder-revamped: The menu without gum"><br><sub>The menu without gum, from <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/plain-apply.png" alt="reorder-revamped: apply from the menu"><br><sub><code>apply</code> from the menu, from <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/version.png" alt="reorder-revamped: The version"><br><sub>The version, from <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/error.png" alt="reorder-revamped: An unknown command"><br><sub>An unknown command, from <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="reorder-revamped: The header in six themes"><br><sub>The header in six themes, from <code>themes.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/help.png" alt="reorder-revamped: The help page"><br><sub>The help page, from <code>help.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/accent.png" alt="reorder-revamped: An accent from REORDER_REVAMPED_ACCENT"><br><sub>An accent from <code>REORDER_REVAMPED_ACCENT</code>, from <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"></td>
+</tr>
+</table>
+
+</details>
+
+## Portability
+
+The plugin is POSIX `sh`. CI runs every suite on each row below.
+
+| Shell | Status |
+|:------|:-------|
+| `dash`, `/bin/sh` on macOS | Supported |
+| `bash` 3.2 and 5.x, the system's `zsh` and Homebrew's | Supported |
+
+| System | Status |
+|:-------|:-------|
+| macOS | Tahoe on Apple Silicon and Intel, with the tools it ships, Homebrew's GNU tools and Homebrew's uutils |
+| Linux | Ubuntu 26.04 on x86_64 and arm64, with GNU coreutils, uutils and BusyBox |
+
+## Development
+
+| Command | What it runs |
+|:--------|:-------------|
+| `make fmt` | shfmt `-i 2` on every script |
+| `make lint` | shfmt, ShellCheck, mandoc, yamllint and actionlint, at zero findings |
+| `make test` | The bats suites under the system `sh`, real mouse drags included |
+| `make test-all` | The suites under every installed shell, both builds of bash and zsh on macOS |
+| `make test-linux` | The suites in an Ubuntu container |
+| `make coverage` | bashcov on this Mac and in the Ubuntu container, merged and gated at 100 percent |
+| `make screens` | The screens above, recorded from the real plugin inside tmux with VHS, on macOS |
+| `make install` | The command, its man page and completions under `PREFIX` |
+
+Commits follow the conventional commit format and go straight to `main`. After a green `ci` run on `main`, `release.yml` runs semantic-release: every `feat` or `fix` since the last tag publishes a release, stamps the version constant and adds the notes to [`CHANGELOG.md`](CHANGELOG.md).
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE), copyright Gustavo Franco.
 
 <!-- family:begin -->
 

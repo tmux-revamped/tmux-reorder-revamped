@@ -1,0 +1,224 @@
+#!/bin/sh
+[ -n "${ZSH_VERSION:-}" ] && emulate sh
+set -eu
+
+reorder_revamped_self="$0"
+case "${reorder_revamped_self}" in
+*/*) ;;
+*) reorder_revamped_self="$(command -v -- "${reorder_revamped_self}")" ;;
+esac
+reorder_revamped_lib="$(cd "${reorder_revamped_self%/*}/../lib" && pwd)" || exit 1
+for reorder_revamped_inherited in $(env | sed -n -e 's/^\(REVAMPED_[A-Za-z0-9_]*\)=.*/\1/p' -e 's/^\(REORDER_REVAMPED_[A-Za-z0-9_]*_LOADED\)=.*/\1/p'); do
+  case "${reorder_revamped_inherited}" in
+  REVAMPED_TEST_*) continue ;;
+  *) unset "${reorder_revamped_inherited}" ;;
+  esac
+done
+REVAMPED_LIB="${reorder_revamped_lib}"
+
+# shellcheck source=SCRIPTDIR/../lib/core.sh
+. "${REVAMPED_LIB}/core.sh"
+# shellcheck source=SCRIPTDIR/../lib/reorder.sh
+. "${REVAMPED_LIB}/reorder.sh"
+
+reorder_revamped_interface() {
+  # shellcheck disable=SC2034
+  REVAMPED_UI_NAME=reorder-revamped REVAMPED_UI_VERSION="${REORDER_REVAMPED_VERSION}" REVAMPED_UI_TAGLINE="drag a tab to move its window"
+  if [ -n "${REORDER_REVAMPED_ACCENT:-}" ]; then
+    # shellcheck disable=SC2034
+    REVAMPED_UI_ACCENT_CHOICE="${REORDER_REVAMPED_ACCENT}" REVAMPED_UI_ACCENT_NAME=REORDER_REVAMPED_ACCENT
+  fi
+  # shellcheck source=SCRIPTDIR/../lib/cli.sh
+  . "${REVAMPED_LIB}/cli.sh"
+  # shellcheck source=SCRIPTDIR/../lib/doctor.sh
+  . "${REVAMPED_LIB}/doctor.sh"
+}
+
+reorder_revamped_usage() {
+  reorder_revamped_interface
+  revamped_cli_usage_error "$1"
+}
+
+reorder_revamped_help() {
+  revamped_cli_help_page <<'HELP'
+reorder-revamped - drag a window tab along the tmux status line to move it
+
+usage:
+  reorder-revamped apply     bind the status line mouse keys now
+  reorder-revamped list      print every binding apply would make
+  reorder-revamped grab SESSION CLIENT
+                             measure the tabs when a drag starts
+  reorder-revamped slide SESSION SOURCE TARGET CLIENT MEASURE
+                             move the dragged window onto a tab while
+                             dragging
+  reorder-revamped drop SESSION SOURCE:SEEN TARGET ACTIVITY
+                             move the dragged window onto the tab it was
+                             released on
+  reorder-revamped edge first|last|trailing SESSION SOURCE:SEEN ACTIVITY
+                             move the dragged window to an end of the list
+  reorder-revamped doctor    check this machine
+  reorder-revamped version   print the version
+  reorder-revamped help      print this page
+
+options:
+  --json           list prints one JSON object
+  --theme NAME     the look: kodougu, catppuccin-mocha, catppuccin-latte,
+                   dracula, nord, gruvbox, tokyo-night or mono
+  --SETTING VALUE  any tmux option below, named with dashes, such as
+                   --mode swap or --edges off
+
+environment:
+  REORDER_REVAMPED_SETTING  any tmux option below in capitals, such as
+                            REORDER_REVAMPED_MODE
+  REORDER_REVAMPED_THEME    the look, when --theme is not given
+  REORDER_REVAMPED_ACCENT   a colour such as #CBA6F7 for the accent
+  KODOUGU_THEME             the family look, when neither is given
+  KODOUGU_ACCENT            the family accent, when the tool's is unset
+  NO_COLOR                  turn colour off
+
+tmux options:
+  @reorder_revamped_mode            insert shifts the tabs in between, swap
+                                    exchanges two windows on release (insert)
+  @reorder_revamped_live            off moves the window only on release (on)
+  @reorder_revamped_edges           off leaves status-left, status-right and
+                                    the empty space unbound (on)
+  @reorder_revamped_timeout         seconds after which a recorded drag is
+                                    ignored (10)
+  @reorder_revamped_enable_logging  1 writes failed moves to a log (unset)
+  @revamped_theme                   the family look (kodougu)
+
+notes:
+  The entry point runs apply once when tmux loads the plugin, and every
+  binding goes to tmux in one call. The first motion of a drag records the
+  pressed tab with set-option -F, which starts no process; grab, slide, drop
+  and edge run from the mouse bindings. A drag counts only when it began with
+  a press on a tab within the last 10 seconds. Settings given on the command
+  line shape the bindings apply makes; drop and edge read the tmux options.
+  Needs tmux 3.2.
+
+examples:
+  reorder-revamped list
+  reorder-revamped --mode swap apply
+  reorder-revamped doctor
+HELP
+}
+
+reorder_revamped_version() {
+  reorder_revamped_tmux=$(tmux -V 2>/dev/null) || reorder_revamped_tmux=missing
+  printf '%s %s\n' reorder-revamped "${REORDER_REVAMPED_VERSION}"
+  printf 'tmux: %s\n' "${reorder_revamped_tmux#tmux }"
+}
+
+reorder_revamped_doctor() {
+  revamped_doctor_tmux
+  revamped_doctor_gum
+  revamped_doctor_core_tools awk sed tr
+  revamped_doctor_finish
+  [ "${REVAMPED_DOCTOR_MISSING}" -eq 0 ] || exit 1
+}
+
+reorder_revamped_list() {
+  reorder_revamped_plan
+  if [ -n "${reorder_revamped_json}" ]; then
+    reorder_revamped_json
+    return 0
+  fi
+  reorder_revamped_lines
+}
+
+reorder_revamped_apply_command() {
+  reorder_revamped_apply
+  reorder_revamped_count=$(reorder_revamped_bindings)
+  printf 'Applied. %s keys are bound.\n' "${reorder_revamped_count}"
+}
+
+reorder_revamped_menu() {
+  revamped_cli_require_terminal
+  reorder_revamped_choice=$(revamped_cli_menu "List the bindings" "Apply them now" "Check this machine" "Help")
+  case "${reorder_revamped_choice}" in
+  "List the bindings") reorder_revamped_list ;;
+  "Apply them now") reorder_revamped_apply_command ;;
+  "Check this machine") reorder_revamped_doctor ;;
+  *) reorder_revamped_help ;;
+  esac
+}
+
+reorder_revamped_dispatch() {
+  case "${1:-}" in
+  doctor) reorder_revamped_doctor ;;
+  version | --version | -V) reorder_revamped_version ;;
+  help | --help | -h) reorder_revamped_help ;;
+  list) reorder_revamped_list ;;
+  "") reorder_revamped_menu ;;
+  *) revamped_cli_usage_error "unknown command '$1'" ;;
+  esac
+}
+
+reorder_revamped_known() {
+  [ "$1" != --theme ] || return 0
+  reorder_revamped_known_name=$(reorder_revamped_setting_name "$1")
+  [ -n "${reorder_revamped_known_name}" ] || reorder_revamped_usage "unknown option '$1'"
+}
+
+reorder_revamped_set() {
+  reorder_revamped_set_upper=$(printf '%s\n' "$1" | tr '[:lower:]' '[:upper:]')
+  export "REORDER_REVAMPED_${reorder_revamped_set_upper}=$2"
+}
+
+reorder_revamped_option() {
+  reorder_revamped_option_name=$(reorder_revamped_setting_name "$1")
+  [ -n "${reorder_revamped_option_name}" ] || reorder_revamped_usage "unknown option '$1'"
+  reorder_revamped_set "${reorder_revamped_option_name}" "$2"
+}
+
+reorder_revamped_main() {
+  reorder_revamped_theme="${REORDER_REVAMPED_THEME:-}" reorder_revamped_json="" reorder_revamped_count=$# reorder_revamped_rest=0
+  while [ "${reorder_revamped_count}" -gt 0 ]; do
+    reorder_revamped_arg="$1"
+    shift
+    reorder_revamped_count=$((reorder_revamped_count - 1))
+    case "${reorder_revamped_rest}:${reorder_revamped_arg}" in
+    1:*) set -- "$@" "${reorder_revamped_arg}" ;;
+    0:--) reorder_revamped_rest=1 ;;
+    0:--json) reorder_revamped_json=1 ;;
+    0:-h | 0:-V | 0:--help | 0:--version) set -- "$@" "${reorder_revamped_arg}" ;;
+    0:--theme=*) reorder_revamped_theme="${reorder_revamped_arg#--theme=}" ;;
+    0:--*=*) reorder_revamped_option "${reorder_revamped_arg%%=*}" "${reorder_revamped_arg#*=}" ;;
+    0:--*)
+      reorder_revamped_known "${reorder_revamped_arg}"
+      [ "${reorder_revamped_count}" -gt 0 ] || reorder_revamped_usage "option '${reorder_revamped_arg}' needs a value"
+      if [ "${reorder_revamped_arg}" = --theme ]; then
+        reorder_revamped_theme="$1"
+      else
+        reorder_revamped_option "${reorder_revamped_arg}" "$1"
+      fi
+      shift
+      reorder_revamped_count=$((reorder_revamped_count - 1))
+      ;;
+    0:-?*) reorder_revamped_usage "unknown option '${reorder_revamped_arg}'" ;;
+    *) set -- "$@" "${reorder_revamped_arg}" ;;
+    esac
+  done
+  reorder_revamped_run "${reorder_revamped_theme}" "$@"
+}
+
+reorder_revamped_run() {
+  reorder_revamped_run_theme="$1"
+  shift
+  [ -z "${reorder_revamped_json}" ] || [ "${1:-}" = list ] || reorder_revamped_usage "option '--json' works only with list"
+  case "${1:-}" in
+  apply) reorder_revamped_apply ;;
+  grab | slide | drop | edge)
+    reorder_revamped_run_verb="$1"
+    shift
+    "reorder_revamped_${reorder_revamped_run_verb}" "$@"
+    ;;
+  *)
+    reorder_revamped_interface
+    revamped_cli_start "${reorder_revamped_run_theme}"
+    reorder_revamped_dispatch "$@"
+    ;;
+  esac
+}
+
+reorder_revamped_main "$@"

@@ -1,0 +1,7 @@
+$ reorder-revamped doctor
+tmux               ok       <path>, 3.8
+gum                ok       <path>
+awk                ok       <path>, <flavor>
+sed                ok       <path>, <flavor>
+tr                 ok       <path>, <flavor>
+exit 0

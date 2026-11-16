@@ -1,0 +1,3 @@
+$ reorder-revamped
+reorder-revamped: no command given. run 'reorder-revamped help' for usage.
+exit 1

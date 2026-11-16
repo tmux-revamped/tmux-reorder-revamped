@@ -2,63 +2,66 @@
 
 # tmux-reorder-revamped
 
-<strong>tmuxのステータスバー上でウィンドウのタブをマウスでドラッグして、そのウィンドウを移動します。</strong>
+<strong>tmux のステータスバーでウィンドウのタブをマウスでドラッグして、そのウィンドウを移動します。</strong>
 
-[English](README.md) | 日本語 | [简体中文](README.zh-Hans.md) | [繁體中文（香港）](README.zh-HK.md)
+[English](README.md) &nbsp;|&nbsp; 日本語 &nbsp;|&nbsp; [简体中文](README.zh-Hans.md) &nbsp;|&nbsp; [繁體中文（香港）](README.zh-HK.md)
 
-[![family](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-reorder-revamped/family.yml?branch=main&style=flat-square&label=family)](https://github.com/tmux-revamped/tmux-reorder-revamped/actions/workflows/family.yml)
-[![tests](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-reorder-revamped/tests.yml?branch=main&style=flat-square&label=tests)](https://github.com/tmux-revamped/tmux-reorder-revamped/actions/workflows/tests.yml)
+[![ci](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-reorder-revamped/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/tmux-revamped/tmux-reorder-revamped/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/tmux-revamped/tmux-reorder-revamped?style=flat-square&label=release)](https://github.com/tmux-revamped/tmux-reorder-revamped/releases/latest)
 [![openssf scorecard](https://img.shields.io/ossf-scorecard/github.com/tmux-revamped/tmux-reorder-revamped?style=flat-square&label=openssf%20scorecard)](https://scorecard.dev/viewer/?uri=github.com/tmux-revamped/tmux-reorder-revamped)
 [![license](https://img.shields.io/github/license/tmux-revamped/tmux-reorder-revamped?style=flat-square&label=license)](LICENSE)
 
 <p align="center">
-  <a href="#what-it-does">概要</a> |
-  <a href="#installation">インストール</a> |
-  <a href="#usage">使い方</a> |
-  <a href="#configuration">設定</a> |
-  <a href="#key-bindings">キーバインド</a> |
-  <a href="#how-it-works">仕組み</a>
+  <a href="#クイックスタート"><strong>クイックスタート</strong></a> &nbsp;|&nbsp;
+  <a href="#使い方">使い方</a> &nbsp;|&nbsp;
+  <a href="#仕組み">仕組み</a> &nbsp;|&nbsp;
+  <a href="#画面">画面</a>
 </p>
 
 </div>
 
-**ルートテーブルのマウスバインドは9個です。ポーリングはしません。スライド1回につきtmuxコマンドは1つです。macOSとLinuxでテストしています。**
+<p align="center">
+  <img src="screens/hero.gif" alt="タブをステータスラインに沿ってドラッグしてウィンドウを移動する reorder-revamped" width="800">
+</p>
+
+```console
+$ reorder-revamped list | cut -c1-72
+set-option -g @reorder_revamped_hit #{window_id}
+set-option -g @reorder_revamped_press_original switch-client -t =
+bind-key -n MouseDown1Status set-option -gF -t = @reorder_revamped_press
+bind-key -n SecondClick1Status set-option -gF -t = @reorder_revamped_pre
+bind-key -n TripleClick1Status set-option -gF -t = @reorder_revamped_pre
+bind-key -n MouseUp1Status set-option -gu @reorder_revamped_pressed \; s
+bind-key -n MouseDrag1Status if-shell -F #{&&:#{@reorder_revamped_presse
+bind-key -n MouseDragEnd1Status run-shell -b -t = '/home/user/.tmux/plug
+bind-key -n MouseDragEnd1StatusLeft run-shell -b '/home/user/.tmux/plugi
+bind-key -n MouseDragEnd1StatusRight run-shell -b '/home/user/.tmux/plug
+bind-key -n MouseDragEnd1StatusDefault run-shell -b '/home/user/.tmux/pl
+```
+
+タブを押してステータスバーに沿ってドラッグし、離すと、ウィンドウがそこへ移動し、間のタブがずれます。ドラッグ中はタブがポインターの下を滑り、セッション名か右端に落とすとウィンドウが先頭か末尾へ移動します。タブを押すと、これまでどおりそのウィンドウが選ばれます。
 
 ---
 
-<a id="what-it-does"></a>
+## クイックスタート
 
-## 概要
+### 前提条件
 
-タブを押してバーに沿ってドラッグします。タブはポインターと一緒に動きます。ポインターが別のタブに入るたびに、つかんだタブがその位置に入り、他のタブは横にずれます。ブラウザーのタブと同じ動きです。見えている位置で離してください。`status-left`の上で離すと最初のウィンドウに、最後のタブより右で離すと最後のウィンドウになります。
+| ツール | バージョン | 用途 |
+|:-----|:--------|:---------|
+| tmux | 3.2 以降 | ドラッグとドロップ。3.8 以降ではライブスライドのためにタブの幅を測ります |
+| gum | 任意 | `reorder-revamped` のメニュー、表、色。なくてもすべてのコマンドがプレーンテキストで動きます |
 
-パッチもポーリングもない、素のtmuxで動きます。動きの判定はtmuxの中で行い、タブが別のタブに入ったときだけ短いスクリプトが動きます。
-
-## 必要なもの
-
-| 項目 | バージョンや補足 |
-|:------------|:----------------|
-| tmux | 3.2以降。それより古いtmuxでは何も割り当てません。対応するすべてのバージョンでタブはポインターの下へスライドし、3.8以降では位置を測って判定します |
-| マウス | `set -g mouse on` |
-| bash | 3.2以降。macOS標準の`/bin/bash`で動きます |
-| OS | Apple SiliconとIntelのmacOS、x86_64とarm64のLinux |
-| 基本コマンド | BSD、GNU、uutilsのいずれのcoreutilsでも動きます |
-
-<a id="installation"></a>
-
-## インストール
-
-[TPM](https://github.com/tmux-plugins/tpm)を使う場合は、`~/.tmux.conf`にプラグインを追加して`prefix + I`を押します。
+### インストール
 
 ```tmux
-set -g mouse on
 set -g @plugin 'tmux-revamped/tmux-reorder-revamped'
+set -g mouse on
 ```
 
-TPMを使わない場合は、リポジトリをクローンし、`~/.tmux.conf`からエントリーポイントを実行します。
+続けて `prefix + I` を押します。TPM を使わない場合は、リポジトリをクローンし、`~/.tmux.conf` からエントリーポイントを実行します。
 
-```sh
+```bash
 git clone https://github.com/tmux-revamped/tmux-reorder-revamped ~/.tmux/plugins/tmux-reorder-revamped
 ```
 
@@ -66,99 +69,140 @@ git clone https://github.com/tmux-revamped/tmux-reorder-revamped ~/.tmux/plugins
 run-shell ~/.tmux/plugins/tmux-reorder-revamped/reorder-revamped.tmux
 ```
 
-<a id="usage"></a>
+クローンで `make install` を実行すると、`reorder-revamped` が `~/.local/bin` に、manページと補完が `~/.local/share` の下に入ります。
+
+### 確認
+
+```bash
+~/.tmux/plugins/tmux-reorder-revamped/bin/reorder-revamped doctor
+```
 
 ## 使い方
 
-| 操作 | 結果 |
-|:--------|:-------|
-| タブを別のタブの上へドラッグする | ボタンを押している間に、つかんだタブがその位置へスライドします |
-| 別のタブの上で離す | ウィンドウはスライドした位置に留まります |
-| `status-left`の上で離す | ウィンドウが最初のウィンドウになります |
-| `status-right`の上で離す | ウィンドウが最後のウィンドウになります |
-| 最後のタブの後ろの空白で離す | `status-justify`が`left`のとき、ウィンドウが最後のウィンドウになります |
-| つかんだタブの上で離す | 何も動きません |
+tmux の `mouse` オプションをオンにしてタブをドラッグします。マウス操作にはプレフィックスがないため、すべての割り当てはルートテーブルにあり、プラグインはプレフィックスキーを割り当てません。
 
-ドラッグしたウィンドウは現在のウィンドウのままです。ウィンドウのインデックスの欠番はそのまま残ります。ウィンドウ同士が位置を入れ替えるだけで、インデックスの振り直しはしません。
+| マウス | 動作 |
+|:------|:-------|
+| タブを押す | タブを記録し、それまでの押下コマンド（既定は `switch-client -t =`）を実行します |
+| タブをドラッグする | ポインターが別のタブに入るたびに、ウィンドウをポインターの下へ滑らせます |
+| タブの上で離す | ウィンドウをそのタブへ移動します |
+| セッション名の上で離す | edges がオンのとき、ウィンドウを先頭へ移動します |
+| 右端で離す | edges がオンのとき、ウィンドウを末尾へ移動します |
+| 空いた場所で離す | edges がオンで、ウィンドウ一覧が左寄せのとき、ウィンドウを末尾へ移動します |
 
-<a id="configuration"></a>
+| コマンド | 動作 |
+|:--------|:-------------|
+| `reorder-revamped apply` | マウスの割り当てを今すぐ行います。プラグインの読み込み時にエントリーポイントが実行します |
+| `reorder-revamped list` | apply が行う割り当てをすべて表示します。`--json` で 1 つのオブジェクトを出力します |
+| `reorder-revamped grab`, `slide`, `drop`, `edge` | マウスの割り当てから実行されます。タブの測定、スライド、タブへのドロップ、端へのドロップ |
+| `reorder-revamped doctor` | 依存関係ごとに 1 行 |
+| `reorder-revamped version` | バージョンと tmux のバージョン |
+| `reorder-revamped help` | ヘルプ。`man reorder-revamped` にも同じコマンドと設定があります |
+| `reorder-revamped` | 端末ではメニュー |
 
-## 設定
+| tmux オプション | 既定値 | 意味 |
+|:------------|:--------|:--------|
+| `@reorder_revamped_mode` | `insert` | `insert` はウィンドウを移動して間のウィンドウをずらします。`swap` は離したときに 2 つのウィンドウだけを入れ替え、ライブスライドはありません |
+| `@reorder_revamped_live` | `on` | `off` でドラッグ中はタブを動かさず、離したときだけウィンドウを移動します |
+| `@reorder_revamped_edges` | `on` | `off` でセッション名、右端、空いた場所を割り当てません |
+| `@reorder_revamped_timeout` | `10` | 記録したドラッグを無視するまでのクライアント操作の秒数。ペインの上で放棄したドラッグが、後で離したときにウィンドウを動かさないようにします |
+| `@reorder_revamped_enable_logging` | 未設定 | `1` で失敗した移動を `~/.tmux/reorder-revamped-logs/` に書き出します |
 
-オプションはプラグインを読み込む前に`~/.tmux.conf`で設定します。モード、ライブ、端の設定は読み込み時に読むので、変更したら設定を再読み込みしてください。
+mode、live、edges は割り当ての形を決めるので、変更したら `reorder-revamped apply` を実行するか設定を再読み込みします。どのオプションも、ダッシュ区切りのコマンドオプション（例 `--edges off`）と環境変数（例 `REORDER_REVAMPED_EDGES`）で指定できます。優先順位はコマンドライン、環境変数、tmux オプションの順です。空の tmux オプションは既定値を意味します。
 
-| オプション | 既定値 | 意味 |
-|:-------|:--------|:--------|
-| `@reorder_revamped_mode` | `insert` | `insert`はウィンドウを移動し、間にあるウィンドウをずらします。`swap`は離したときに2つのウィンドウだけを入れ替え、ライブのスライドはしません |
-| `@reorder_revamped_live` | `on` | `off`にするとドラッグ中はタブを動かさず、離したときだけウィンドウを移動します |
-| `@reorder_revamped_edges` | `on` | `off`にすると`status-left`、`status-right`、空白部分に何も割り当てません |
-| `@reorder_revamped_timeout` | `10` | クライアントの操作がこの秒数を超えると、記録したドラッグを無視します。ペインの上で放棄したドラッグが、後の無関係な離す操作でウィンドウを動かすことはありません |
-| `@reorder_revamped_enable_logging` | 未設定 | `1`で失敗した移動を`~/.tmux/reorder-revamped-logs/`に書きます |
+プラグインはドラッグの状態を `@reorder_revamped_source`、`_seen`、`_hit`、`_probe`、`_hover`、`_pressed`、`_pressed_at`、`_press_original` に保存します。これらは設定しないでください。
 
-```tmux
-set -g @reorder_revamped_mode 'swap'
-set -g @reorder_revamped_edges 'off'
-```
-
-### 内部状態
-
-以下のオプションはプラグインが自分で管理します。設定しないでください。
-
-| オプション | 内容 |
-|:-------|:------|
-| `@reorder_revamped_source` | ドラッグ中につかんでいるウィンドウです |
-| `@reorder_revamped_seen` | ドラッグの最新の動きの時点でのクライアントの操作時刻です |
-| `@reorder_revamped_hit` | ポインターの列をその下のタブに対応させる書式です |
-| `@reorder_revamped_probe` | 最新の動きの時点でポインターの下にあったタブです |
-| `@reorder_revamped_hover` | つかんだタブが最後にスライドした先のタブです |
-| `@reorder_revamped_pressed` | ステータスバーで最後に押したときの下にあったタブです |
-| `@reorder_revamped_pressed_at` | その押下の時点でのクライアントの操作時刻です |
-| `@reorder_revamped_press_original` | プラグインが包み込む`MouseDown1Status`のコマンドです |
-
-<a id="key-bindings"></a>
-
-## キーバインド
-
-マウスの操作にはプレフィックスがないため、すべてのバインドはルートテーブルにあります。プレフィックスキーは割り当てません。
-
-| キー | 動作 |
-|:----|:-------|
-| `MouseDown1Status` | 押したタブを記録し、元の押下コマンドを実行します |
-| `SecondClick1Status`、`TripleClick1Status` | クリック直後の押下をtmuxは連続クリックとして報告するため、これらでも押下を記録します。自分で割り当てている場合は触れません |
-| `MouseUp1Status` | 単なるクリックでは押下の記録を消します。自分で割り当てている場合は触れません |
-| `MouseDrag1Status` | 最初の動きでつかんだタブを記録し、ポインターが別のタブに入るたびにスライドさせます |
-| `MouseDragEnd1Status` | つかんだウィンドウをポインターの下のタブの位置へ移動します |
-| `MouseDragEnd1StatusLeft` | 端の設定が有効なとき、最初へ移動します |
-| `MouseDragEnd1StatusRight` | 端の設定が有効なとき、最後へ移動します |
-| `MouseDragEnd1StatusDefault` | 端の設定が有効で、ウィンドウの一覧が左寄せのとき、最後へ移動します |
-
-関わる標準のバインドは`MouseDown1Status`だけで、プラグインはそれを置き換えずに包み込みます。元のコマンド、既定では`switch-client -t =`は押下を記録した後も実行されるので、タブを押せば今までどおりウィンドウを選べます。元のコマンドは`@reorder_revamped_press_original`に保存するため、再読み込みしても二重に包むことはありません。
-
-<a id="how-it-works"></a>
+<a id="仕組み"></a>
 
 ## 仕組み
 
-**つかむ。** ドラッグの最初の動きで押したタブが分かり、プラグインはそれを`set-option -F`でサーバーのオプションに保存します。これはプロセスを起動しません。
+ドラッグの最初の動きで、押したタブを `set-option -F` でサーバーオプションに保存します。プロセスは起動しません。tmux 3.2 から 3.7 では、tmux がポインターの下のタブを直接報告します。3.8 以降はドラッグを始めたタブを報告し続けるため、ドラッグの開始時に `grab` が tmux 自身の `#{w:}` 幅修飾子で各タブを測り、`mouse_x` をポインターの下のタブに変えるフォーマットを保存します。
 
-**ポインターの下のタブを見つける。** tmux 3.2から3.7では、tmuxがポインターの下のタブを直接報告します。tmux 3.8以降では、ドラッグを始めたタブを報告し続け、実際の列は`mouse_x`で追います。そのため、そこでドラッグが始まると`src/reorder.sh grab`がtmux自身の`#{w:}`幅修飾子ですべてのタブを測ります。これはステータス行自体が使う計算と同じです。そして`mouse_x`をポインターの下のタブに変える書式を保存します。動くたびに、その書式をtmuxの中で評価します。
+ポインターが別のタブに入ったときだけ `slide` が実行されます。隣り合う `swap-window -d` を並べた 1 つの tmux コマンドで、タブの測り直しも同じコマンドで行います。測定には、左寄せで 1 行のステータスバーと、収まるウィンドウ一覧が必要です。そうでないときは、離したときだけウィンドウが移動します。
 
-**スライド。** ポインターが別のタブに入ったときだけ、プラグインは`src/reorder.sh slide`を実行します。隣り合う`swap-window -d`の手順からなる1つのtmuxコマンドでつかんだウィンドウを動かし、同じコマンドでタブを測り直します。測定には、左寄せで1行のステータスバーと、収まりきるウィンドウの一覧が必要です。そうでない場合、ウィンドウは離したときだけ動きます。
+ドラッグは、直近 10 秒以内にタブを押して始めたときだけ有効です。そのため、ペインの中で始めたテキスト選択がバーを横切っても何も動きません。
 
-**関係ないドラッグを無視する。** ドラッグは、直近10秒以内にタブを押して始まった場合だけ有効です。vimでのテキスト選択のようにペインの中で始まったドラッグはタブを押していないので、バーを横切っても離しても何も動きません。
+<a id="画面"></a>
+
+## 画面
+
+<details>
+<summary>すべての画面。本物の tmux の中で <code>make screens</code> で録画し、各マウス操作とキーをステータスラインに表示しています</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/drag.png" alt="reorder-revamped: タブを別のタブへドラッグ"><br><sub>タブを別のタブへドラッグ。<code>hero.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/edge-first.png" alt="reorder-revamped: セッション名に落としたタブは先頭へ"><br><sub>セッション名に落としたタブは先頭へ。<code>hero.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/edge-last.png" alt="reorder-revamped: 空いた場所に落としたタブは末尾へ"><br><sub>空いた場所に落としたタブは末尾へ。<code>hero.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/swap.png" alt="reorder-revamped: @reorder_revamped_mode swap は 2 つのウィンドウを入れ替える"><br><sub><code>@reorder_revamped_mode swap</code> は 2 つのウィンドウを入れ替える。<code>stills.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/live-off.png" alt="reorder-revamped: @reorder_revamped_live off はドラッグ中タブを動かさない"><br><sub><code>@reorder_revamped_live off</code> はドラッグ中タブを動かさない。<code>stills.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/edges-off.png" alt="reorder-revamped: @reorder_revamped_edges off は空いた場所を無視する"><br><sub><code>@reorder_revamped_edges off</code> は空いた場所を無視する。<code>stills.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/menu.png" alt="reorder-revamped: メニュー"><br><sub>メニュー。<code>stills.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="reorder-revamped: doctor"><br><sub><code>doctor</code>。<code>stills.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/list.png" alt="reorder-revamped: list"><br><sub><code>list</code>。<code>stills.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/json.png" alt="reorder-revamped: list --json"><br><sub><code>list --json</code>。<code>stills.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/plain-menu.png" alt="reorder-revamped: gum なしのメニュー"><br><sub>gum なしのメニュー。<code>stills.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/plain-apply.png" alt="reorder-revamped: メニューからの apply"><br><sub>メニューからの <code>apply</code>。<code>stills.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/version.png" alt="reorder-revamped: バージョン"><br><sub>バージョン。<code>stills.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/error.png" alt="reorder-revamped: 不明なコマンド"><br><sub>不明なコマンド。<code>stills.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="reorder-revamped: 6 つのテーマのヘッダー"><br><sub>6 つのテーマのヘッダー。<code>themes.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/help.png" alt="reorder-revamped: ヘルプ"><br><sub>ヘルプ。<code>help.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/accent.png" alt="reorder-revamped: REORDER_REVAMPED_ACCENT によるアクセント"><br><sub><code>REORDER_REVAMPED_ACCENT</code> によるアクセント。<code>stills.tape</code>より</sub></td>
+<td width="50%" valign="top"></td>
+</tr>
+</table>
+
+</details>
+
+## 移植性
+
+プラグインは POSIX `sh` です。CI は下の各行ですべてのテストを実行します。
+
+| シェル | 状態 |
+|:------|:-------|
+| `dash`、macOS の `/bin/sh` | 対応 |
+| `bash` 3.2 と 5.x、システムの `zsh` と Homebrew の `zsh` | 対応 |
+
+| システム | 状態 |
+|:-------|:-------|
+| macOS | Apple Silicon と Intel の Tahoe。付属のツール、Homebrew の GNU ツール、Homebrew の uutils で確認 |
+| Linux | x86_64 と arm64 の Ubuntu 26.04。GNU coreutils、uutils、BusyBox で確認 |
 
 ## 開発
 
-| コマンド | 内容 |
+| コマンド | 実行内容 |
 |:--------|:-------------|
-| `make test` | batsのテストスイートを実行します |
-| `make lint` | すべてのシェルファイルにshellcheckを実行します |
-| `make coverage` | kcovで行カバレッジを測り、95パーセント未満なら失敗します。Linuxで動きます |
+| `make fmt` | すべてのスクリプトに shfmt `-i 2` をかけます |
+| `make lint` | shfmt、ShellCheck、mandoc、yamllint、actionlint を、指摘ゼロで通します |
+| `make test` | システムの `sh` で bats のテスト |
+| `make test-all` | インストール済みのすべてのシェルでテスト。macOS では bash と zsh の両方のビルドを含みます |
+| `make test-linux` | Ubuntu のコンテナでテスト |
+| `make coverage` | この Mac と Ubuntu のコンテナで bashcov を実行し、合算して 100 パーセントで判定します |
+| `make screens` | 上の画面を、本物のプラグインから tmux の中で VHS で録画します。macOS で実行します |
+| `make install` | コマンド、manページ、補完を `PREFIX` の下に置きます |
 
-統合テストは、空の設定を使うプライベートなソケットで独自のtmuxサーバーを起動します。マウスのテストでは、あるテスト用サーバーのクライアントを別のサーバーの中で接続し、SGRのマウスシーケンスを入力します。
+コミットは Conventional Commits の形式に従い、そのまま `main` に入ります。`main` で `ci` が成功すると、`release.yml` が semantic-release を実行します。前回のタグ以降に `feat` か `fix` があればリリースを公開し、バージョン定数を更新し、変更内容を [`CHANGELOG.md`](CHANGELOG.md) に追加します。
 
 ## ライセンス
 
-[MIT](LICENSE)
+[MIT](LICENSE)、copyright Gustavo Franco。
 
 <!-- family:begin -->
 

@@ -2,63 +2,66 @@
 
 # tmux-reorder-revamped
 
-<strong>用滑鼠在 tmux 狀態列上拖動視窗標籤來移動該視窗。</strong>
+<strong>在 tmux 狀態列上用滑鼠拖動視窗標籤，即可移動該視窗。</strong>
 
-[English](README.md) | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | 繁體中文（香港）
+[English](README.md) &nbsp;|&nbsp; [日本語](README.ja.md) &nbsp;|&nbsp; [简体中文](README.zh-Hans.md) &nbsp;|&nbsp; 繁體中文（香港）
 
-[![family](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-reorder-revamped/family.yml?branch=main&style=flat-square&label=family)](https://github.com/tmux-revamped/tmux-reorder-revamped/actions/workflows/family.yml)
-[![tests](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-reorder-revamped/tests.yml?branch=main&style=flat-square&label=tests)](https://github.com/tmux-revamped/tmux-reorder-revamped/actions/workflows/tests.yml)
+[![ci](https://img.shields.io/github/actions/workflow/status/tmux-revamped/tmux-reorder-revamped/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/tmux-revamped/tmux-reorder-revamped/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/tmux-revamped/tmux-reorder-revamped?style=flat-square&label=release)](https://github.com/tmux-revamped/tmux-reorder-revamped/releases/latest)
 [![openssf scorecard](https://img.shields.io/ossf-scorecard/github.com/tmux-revamped/tmux-reorder-revamped?style=flat-square&label=openssf%20scorecard)](https://scorecard.dev/viewer/?uri=github.com/tmux-revamped/tmux-reorder-revamped)
 [![license](https://img.shields.io/github/license/tmux-revamped/tmux-reorder-revamped?style=flat-square&label=license)](LICENSE)
 
 <p align="center">
-  <a href="#what-it-does">功能</a> |
-  <a href="#installation">安裝</a> |
-  <a href="#usage">用法</a> |
-  <a href="#configuration">設定</a> |
-  <a href="#key-bindings">按鍵綁定</a> |
-  <a href="#how-it-works">運作原理</a>
+  <a href="#快速開始"><strong>快速開始</strong></a> &nbsp;|&nbsp;
+  <a href="#用法">用法</a> &nbsp;|&nbsp;
+  <a href="#運作原理">運作原理</a> &nbsp;|&nbsp;
+  <a href="#畫面">畫面</a>
 </p>
 
 </div>
 
-**9 個根表滑鼠綁定。不輪詢。每次滑動只用一條 tmux 指令。已在 macOS 及 Linux 上測試。**
+<p align="center">
+  <img src="screens/hero.gif" alt="reorder-revamped 隨標籤沿狀態列拖動而移動視窗" width="800">
+</p>
+
+```console
+$ reorder-revamped list | cut -c1-72
+set-option -g @reorder_revamped_hit #{window_id}
+set-option -g @reorder_revamped_press_original switch-client -t =
+bind-key -n MouseDown1Status set-option -gF -t = @reorder_revamped_press
+bind-key -n SecondClick1Status set-option -gF -t = @reorder_revamped_pre
+bind-key -n TripleClick1Status set-option -gF -t = @reorder_revamped_pre
+bind-key -n MouseUp1Status set-option -gu @reorder_revamped_pressed \; s
+bind-key -n MouseDrag1Status if-shell -F #{&&:#{@reorder_revamped_presse
+bind-key -n MouseDragEnd1Status run-shell -b -t = '/home/user/.tmux/plug
+bind-key -n MouseDragEnd1StatusLeft run-shell -b '/home/user/.tmux/plugi
+bind-key -n MouseDragEnd1StatusRight run-shell -b '/home/user/.tmux/plug
+bind-key -n MouseDragEnd1StatusDefault run-shell -b '/home/user/.tmux/pl
+```
+
+按住一個標籤，沿狀態列拖動後放開：視窗移到那裏，中間的標籤順序挪開。拖動時標籤會在指標下滑動；放到工作階段名稱上或右端，視窗會移到最前或最後。按下標籤仍像以前一樣選取它的視窗。
 
 ---
 
-<a id="what-it-does"></a>
+## 快速開始
 
-## 功能
+### 前提條件
 
-按住一個標籤並沿狀態列拖動。標籤會跟隨指標移動：每當指標進入另一個標籤，被抓住的標籤便佔據它的位置，其他標籤向旁邊讓開，就像瀏覽器標籤一樣。在你看到的位置放開即可。在 `status-left` 上放開會令它成為第一個視窗，在最後一個標籤之後放開會令它成為最後一個視窗。
+| 工具 | 版本 | 用途 |
+|:-----|:--------|:---------|
+| tmux | 3.2 或以上 | 拖放；在 3.8 或以後，即時滑動會量度各個標籤 |
+| gum | 可選 | `reorder-revamped` 的選單、表格和顏色；沒有它，所有命令都輸出純文字 |
 
-它只用原生 tmux，沒有修補，亦不輪詢。移動檢測在 tmux 內部進行，只有當標籤進入另一個標籤時才執行一個簡短的腳本。
-
-## 系統要求
-
-| 項目 | 版本或說明 |
-|:------------|:----------------|
-| tmux | 3.2 或以上。較舊的 tmux 上插件不會綁定任何東西。所有支援的版本上標籤都會滑到指標下方，3.8 或以上透過量度位置來判斷 |
-| 滑鼠 | `set -g mouse on` |
-| bash | 3.2 或以上，因此 macOS 內置的 `/bin/bash` 可以使用 |
-| 作業系統 | Apple Silicon 及 Intel 上的 macOS，x86_64 及 arm64 上的 Linux |
-| 核心工具 | BSD、GNU 或 uutils coreutils |
-
-<a id="installation"></a>
-
-## 安裝
-
-使用 [TPM](https://github.com/tmux-plugins/tpm) 時，把插件加入 `~/.tmux.conf`，然後按 `prefix + I`：
+### 安裝
 
 ```tmux
-set -g mouse on
 set -g @plugin 'tmux-revamped/tmux-reorder-revamped'
+set -g mouse on
 ```
 
-不使用 TPM 時，複製儲存庫，並在 `~/.tmux.conf` 中執行入口腳本：
+然後按 `prefix + I`。不使用 TPM 時，複製儲存庫，並在 `~/.tmux.conf` 中執行它的入口腳本：
 
-```sh
+```bash
 git clone https://github.com/tmux-revamped/tmux-reorder-revamped ~/.tmux/plugins/tmux-reorder-revamped
 ```
 
@@ -66,99 +69,140 @@ git clone https://github.com/tmux-revamped/tmux-reorder-revamped ~/.tmux/plugins
 run-shell ~/.tmux/plugins/tmux-reorder-revamped/reorder-revamped.tmux
 ```
 
-<a id="usage"></a>
+在複製的目錄中執行 `make install`，亦會把 `reorder-revamped` 放入 `~/.local/bin`，並把它的 man 手冊和自動完成放在 `~/.local/share` 下。
+
+### 驗證
+
+```bash
+~/.tmux/plugins/tmux-reorder-revamped/bin/reorder-revamped doctor
+```
 
 ## 用法
 
-| 手勢 | 結果 |
-|:--------|:-------|
-| 把一個標籤拖到另一個標籤上 | 按住按鈕期間，被抓住的標籤滑到該位置 |
-| 在另一個標籤上放開 | 視窗停留在它滑到的位置 |
-| 在 `status-left` 上放開 | 視窗成為第一個視窗 |
-| 在 `status-right` 上放開 | 視窗成為最後一個視窗 |
-| 在最後一個標籤之後的空白處放開 | 當 `status-justify` 為 `left` 時，視窗成為最後一個視窗 |
-| 在抓住的標籤上放開 | 甚麼都不會移動 |
+開啟 tmux 的 `mouse` 選項後拖動標籤。滑鼠手勢沒有前置鍵，所以所有綁定都在根表中；插件不綁定任何前置鍵。
 
-被拖動的視窗保持為目前視窗。視窗索引之間的空缺維持不變：視窗只是交換位置，不會重新編號。
+| 滑鼠 | 作用 |
+|:------|:-------|
+| 按下標籤 | 記錄該標籤，然後執行原有的按下命令，預設是 `switch-client -t =` |
+| 拖動標籤 | 指標每進入另一個標籤，就把視窗滑到指標下 |
+| 在標籤上放開 | 把視窗移到該標籤 |
+| 在工作階段名稱上放開 | edges 開啟時，把視窗移到最前 |
+| 在右端放開 | edges 開啟時，把視窗移到最後 |
+| 在空白處放開 | edges 開啟且視窗列表靠左對齊時，把視窗移到最後 |
 
-<a id="configuration"></a>
+| 命令 | 作用 |
+|:--------|:-------------|
+| `reorder-revamped apply` | 立即綁定滑鼠鍵；插件載入時入口點會執行它 |
+| `reorder-revamped list` | 列出 apply 會做的每個綁定；`--json` 輸出一個物件 |
+| `reorder-revamped grab`, `slide`, `drop`, `edge` | 由滑鼠綁定執行：量度標籤、滑動、放到標籤上、放到一端 |
+| `reorder-revamped doctor` | 每個依賴一行 |
+| `reorder-revamped version` | 版本，然後是 tmux 版本 |
+| `reorder-revamped help` | 說明頁；`man reorder-revamped` 記錄相同的命令和設定 |
+| `reorder-revamped` | 在終端機上顯示選單 |
 
-## 設定
+| tmux 選項 | 預設值 | 含義 |
+|:------------|:--------|:--------|
+| `@reorder_revamped_mode` | `insert` | `insert` 移動視窗並讓中間的視窗順序挪開；`swap` 在放開時只交換兩個視窗，沒有即時滑動 |
+| `@reorder_revamped_live` | `on` | `off` 時拖動中標籤不動，放開時才移動視窗 |
+| `@reorder_revamped_edges` | `on` | `off` 時不綁定工作階段名稱、右端和空白處 |
+| `@reorder_revamped_timeout` | `10` | 記錄的拖動在用戶端活動多少秒後被忽略，這樣在窗格上放棄的拖動不會在之後放開時移動視窗 |
+| `@reorder_revamped_enable_logging` | 未設定 | `1` 時把失敗的移動寫入 `~/.tmux/reorder-revamped-logs/` |
 
-在插件載入之前於 `~/.tmux.conf` 中設定選項。模式、即時及邊緣三個選項在載入時讀取，修改後請重新載入設定。
+mode、live 和 edges 決定綁定的形式，修改後請執行 `reorder-revamped apply` 或重新載入設定。每個選項亦可寫成以短橫線連接的命令選項，例如 `--edges off`，以及環境變數，例如 `REORDER_REVAMPED_EDGES`；命令列優先於環境變數，環境變數優先於 tmux 選項。空的 tmux 選項表示使用預設值。
 
-| 選項 | 預設值 | 含義 |
-|:-------|:--------|:--------|
-| `@reorder_revamped_mode` | `insert` | `insert` 移動視窗並令中間的視窗依次移位。`swap` 只在放開時交換兩個視窗，沒有即時滑動 |
-| `@reorder_revamped_live` | `on` | `off` 在拖動時保持標籤不動，只在放開時移動視窗 |
-| `@reorder_revamped_edges` | `on` | `off` 不在 `status-left`、`status-right` 及空白處綁定任何東西 |
-| `@reorder_revamped_timeout` | `10` | 用戶端活動超過這麼多秒後，已記錄的拖動會被忽略，因此在窗格上放棄的拖動不會在之後放開時移動視窗 |
-| `@reorder_revamped_enable_logging` | 未設定 | `1` 把失敗的移動寫入 `~/.tmux/reorder-revamped-logs/` |
+插件把拖動狀態保存在 `@reorder_revamped_source`、`_seen`、`_hit`、`_probe`、`_hover`、`_pressed`、`_pressed_at` 和 `_press_original` 中。請不要設定它們。
 
-```tmux
-set -g @reorder_revamped_mode 'swap'
-set -g @reorder_revamped_edges 'off'
-```
-
-### 內部狀態
-
-以下選項由插件自行管理，請勿設定。
-
-| 選項 | 內容 |
-|:-------|:------|
-| `@reorder_revamped_source` | 拖動進行中被抓住的視窗 |
-| `@reorder_revamped_seen` | 拖動最近一次移動時的用戶端活動時間 |
-| `@reorder_revamped_hit` | 把指標所在欄對應到其下方標籤的格式 |
-| `@reorder_revamped_probe` | 最近一次移動時指標下方的標籤 |
-| `@reorder_revamped_hover` | 被抓住的標籤最近一次滑到的標籤 |
-| `@reorder_revamped_pressed` | 最近一次在狀態列上按下時下方的標籤 |
-| `@reorder_revamped_pressed_at` | 那次按下時的用戶端活動時間 |
-| `@reorder_revamped_press_original` | 插件包裝的 `MouseDown1Status` 指令 |
-
-<a id="key-bindings"></a>
-
-## 按鍵綁定
-
-滑鼠手勢沒有前綴，所以所有綁定都位於根表中。插件不綁定任何前綴鍵。
-
-| 按鍵 | 作用 |
-|:----|:-------|
-| `MouseDown1Status` | 記錄你按下的標籤，然後執行原來的按下指令 |
-| `SecondClick1Status`、`TripleClick1Status` | 同樣記錄按下，因為點擊後很快的按下會被 tmux 報告為重複點擊。如你已自行綁定，則不改動 |
-| `MouseUp1Status` | 普通點擊時清除按下的紀錄。如你已自行綁定，則不改動 |
-| `MouseDrag1Status` | 第一次移動時記錄被抓住的標籤，之後每當指標進入另一個標籤就滑動它 |
-| `MouseDragEnd1Status` | 把被抓住的視窗移到指標下方的標籤處 |
-| `MouseDragEnd1StatusLeft` | 邊緣啟用時，把它移到最前 |
-| `MouseDragEnd1StatusRight` | 邊緣啟用時，把它移到最後 |
-| `MouseDragEnd1StatusDefault` | 邊緣啟用而視窗清單靠左對齊時，把它移到最後 |
-
-只涉及一個 tmux 內置綁定 `MouseDown1Status`，插件包裝它而不是取代它。原指令，預設是 `switch-client -t =`，在記錄按下之後仍會執行，所以按下標籤依然會選取視窗。原指令儲存在 `@reorder_revamped_press_original` 中，因此重新載入不會把它包裝兩次。
-
-<a id="how-it-works"></a>
+<a id="運作原理"></a>
 
 ## 運作原理
 
-**抓取。** 拖動的第一次移動確定你按下的標籤，插件用 `set-option -F` 把它存入伺服器選項，這一步不會啟動任何進程。
+拖動的第一次移動會用 `set-option -F` 把按下的標籤存入伺服器選項，不會啟動任何程序。在 tmux 3.2 至 3.7 上，tmux 直接報告指標下的標籤。3.8 或以後它會一直報告開始拖動的標籤，所以拖動開始時 `grab` 用 tmux 自己的 `#{w:}` 寬度修飾符量度每個標籤，並保存一個把 `mouse_x` 轉換成指標下標籤的格式。
 
-**找出指標下方的標籤。** 在 tmux 3.2 至 3.7 上，tmux 直接報告指標下方的標籤。在 tmux 3.8 或以上，tmux 在整個拖動過程中一直報告拖動開始時的標籤，而用 `mouse_x` 追蹤真實的欄。因此在這些版本上開始拖動時，`src/reorder.sh grab` 會用 tmux 自己的 `#{w:}` 闊度修飾符量度每個標籤，這與狀態列本身使用的計算相同，並儲存一個把 `mouse_x` 轉換為指標下方標籤的格式。每次移動都在 tmux 內部計算這個格式。
+只有指標進入另一個標籤時才執行 `slide`：一條由相鄰 `swap-window -d` 步驟組成的 tmux 命令，並在同一命令中重新量度標籤。量度需要靠左對齊、單行且放得下視窗列表的狀態列；否則視窗只在放開時移動。
 
-**滑動。** 只有當指標進入另一個標籤時，插件才執行 `src/reorder.sh slide`。它用一條由相鄰 `swap-window -d` 步驟組成的 tmux 指令移動被抓住的視窗，並在同一條指令中重新量度標籤。量度需要靠左對齊、單行而且容得下整個視窗清單的狀態列。否則視窗只在放開時移動。
+只有在最近 10 秒內由按下標籤開始的拖動才算數，所以由窗格內開始、越過狀態列的文字選取不會移動任何視窗。
 
-**忽略無關的拖動。** 只有在最近 10 秒內由按下標籤開始的拖動才算數。由窗格內開始的拖動，例如在 vim 中選取文字，從未按下標籤，因此經過或在狀態列上放開都不會移動任何東西。
+<a id="畫面"></a>
+
+## 畫面
+
+<details>
+<summary>所有畫面，在真實的 tmux 中用 <code>make screens</code> 錄製，每個滑鼠手勢和按鍵顯示在狀態列上</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/drag.png" alt="reorder-revamped：把標籤拖到另一個標籤上"><br><sub>把標籤拖到另一個標籤上，來自 <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/edge-first.png" alt="reorder-revamped：放到工作階段名稱上的標籤移到最前"><br><sub>放到工作階段名稱上的標籤移到最前，來自 <code>hero.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/edge-last.png" alt="reorder-revamped：放到空白處的標籤移到最後"><br><sub>放到空白處的標籤移到最後，來自 <code>hero.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/swap.png" alt="reorder-revamped：@reorder_revamped_mode swap 交換兩個視窗"><br><sub><code>@reorder_revamped_mode swap</code> 交換兩個視窗，來自 <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/live-off.png" alt="reorder-revamped：@reorder_revamped_live off 拖動時標籤不動"><br><sub><code>@reorder_revamped_live off</code> 拖動時標籤不動，來自 <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/edges-off.png" alt="reorder-revamped：@reorder_revamped_edges off 忽略空白處"><br><sub><code>@reorder_revamped_edges off</code> 忽略空白處，來自 <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/menu.png" alt="reorder-revamped：選單"><br><sub>選單，來自 <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="reorder-revamped：doctor"><br><sub><code>doctor</code>，來自 <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/list.png" alt="reorder-revamped：list"><br><sub><code>list</code>，來自 <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/json.png" alt="reorder-revamped：list --json"><br><sub><code>list --json</code>，來自 <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/plain-menu.png" alt="reorder-revamped：沒有 gum 的選單"><br><sub>沒有 gum 的選單，來自 <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/plain-apply.png" alt="reorder-revamped：從選單執行 apply"><br><sub>從選單執行 <code>apply</code>，來自 <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/version.png" alt="reorder-revamped：版本"><br><sub>版本，來自 <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/error.png" alt="reorder-revamped：不明命令"><br><sub>不明命令，來自 <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="reorder-revamped：六種主題下的標題"><br><sub>六種主題下的標題，來自 <code>themes.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/help.png" alt="reorder-revamped：說明頁"><br><sub>說明頁，來自 <code>help.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/accent.png" alt="reorder-revamped：來自 REORDER_REVAMPED_ACCENT 的強調色"><br><sub>來自 <code>REORDER_REVAMPED_ACCENT</code> 的強調色，來自 <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"></td>
+</tr>
+</table>
+
+</details>
+
+## 可攜性
+
+插件是 POSIX `sh`。CI 在下列每一行上執行全部測試。
+
+| Shell | 狀態 |
+|:------|:-------|
+| `dash`、macOS 上的 `/bin/sh` | 支援 |
+| `bash` 3.2 和 5.x、系統內建的 `zsh` 和 Homebrew 的 `zsh` | 支援 |
+
+| 系統 | 狀態 |
+|:-------|:-------|
+| macOS | Apple Silicon 和 Intel 上的 Tahoe，使用內建的工具、Homebrew 的 GNU 工具和 Homebrew 的 uutils |
+| Linux | x86_64 和 arm64 上的 Ubuntu 26.04，使用 GNU coreutils、uutils 和 BusyBox |
 
 ## 開發
 
-| 指令 | 作用 |
+| 指令 | 執行內容 |
 |:--------|:-------------|
-| `make test` | 執行 bats 測試套件 |
-| `make lint` | 對所有 shell 檔案執行 shellcheck |
-| `make coverage` | 用 kcov 量度行覆蓋率，低於 95% 時失敗，在 Linux 上執行 |
+| `make fmt` | 對每個腳本執行 shfmt `-i 2` |
+| `make lint` | shfmt、ShellCheck、mandoc、yamllint 和 actionlint，零警告 |
+| `make test` | 在系統 `sh` 下執行 bats 測試 |
+| `make test-all` | 在每個已安裝的 shell 下執行測試，macOS 上包括 bash 和 zsh 的兩種版本 |
+| `make test-linux` | 在 Ubuntu 容器中執行測試 |
+| `make coverage` | 在這部 Mac 和 Ubuntu 容器中執行 bashcov，合併後以 100% 為門檻 |
+| `make screens` | 以 VHS 在 tmux 中從真實插件錄製上述畫面，在 macOS 上執行 |
+| `make install` | 把指令、man 手冊和自動完成安裝到 `PREFIX` 下 |
 
-整合測試在使用空設定的私人 socket 上啟動自己的 tmux 伺服器。滑鼠測試把一個測試伺服器的用戶端連接到另一個伺服器內部，並向其中輸入 SGR 滑鼠序列。
+提交遵循 Conventional Commits 格式，直接進入 `main`。`main` 上的 `ci` 通過後，`release.yml` 會執行 semantic-release：自上一個標籤以來的每個 `feat` 或 `fix` 都會發佈新版本，更新版本常數，並把說明寫入 [`CHANGELOG.md`](CHANGELOG.md)。
 
-## 授權條款
+## 授權
 
-[MIT](LICENSE)
+[MIT](LICENSE)，copyright Gustavo Franco。
 
 <!-- family:begin -->
 

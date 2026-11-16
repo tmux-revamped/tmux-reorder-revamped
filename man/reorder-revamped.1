@@ -1,0 +1,179 @@
+.TH REORDER-REVAMPED 1 "2026-11-16" "reorder-revamped" "User Commands"
+.SH NAME
+reorder-revamped \- drag a window tab along the tmux status line to move it
+.SH SYNOPSIS
+.B reorder-revamped
+.RI [ options ]
+.B apply
+.br
+.B reorder-revamped
+.RB [ \-\-json ]
+.B list
+.br
+.B reorder-revamped grab
+.I session client
+.br
+.B reorder-revamped slide
+.I session source target client measure
+.br
+.B reorder-revamped drop
+.I session source:seen target activity
+.br
+.B reorder-revamped edge
+.BR first | last | trailing
+.I session source:seen activity
+.br
+.B reorder-revamped doctor
+.br
+.B reorder-revamped version
+.br
+.B reorder-revamped help
+.SH DESCRIPTION
+.B reorder-revamped
+moves a tmux window when you drag its tab along the status line with the
+mouse. In insert mode the tabs in between shift over, and the grabbed tab
+slides under the pointer while you drag. The entry point
+.B reorder-revamped.tmux
+runs
+.B apply
+once when tmux loads the plugin, and every binding goes to tmux in one call.
+.PP
+Run with no command on a terminal, it offers a menu.
+.SH COMMANDS
+.TP
+.B apply
+Bind the status line mouse keys now.
+.TP
+.B list
+Print every binding apply would make, one per line.
+.TP
+.BI grab " session client"
+Measure every tab on the status line and write the format that maps the
+pointer column to a window into
+.BR @reorder_revamped_hit .
+The drag binding runs it when a drag starts on tmux 3.8 and later.
+.TP
+.BI slide " session source target client measure"
+Move the window
+.I source
+onto the tab of
+.IR target ,
+the tabs in between shifting over. With
+.I measure
+set to 1 it also writes the new hit format in the same tmux command.
+.TP
+.BI drop " session source:seen target activity"
+Move the dragged window onto the tab it was released on, when the drag was
+seen within the timeout.
+.TP
+.BI edge " first|last|trailing session source:seen activity"
+Move the dragged window to the start or the end of the list, for a release on
+status-left, status-right or the empty space.
+.TP
+.B doctor
+Print one row per dependency: tmux, gum and the core tools. Exits 1 only when
+a required tool is missing.
+.TP
+.B version
+Print the version, then the tmux version.
+.TP
+.B help
+Print the help page.
+.SH OPTIONS
+.TP
+.B \-\-json
+.B list
+prints one JSON object.
+.TP
+.BI \-\-theme " name"
+Colours of the terminal interface:
+.BR kodougu ,
+.BR catppuccin\-mocha ,
+.BR catppuccin\-latte ,
+.BR dracula ,
+.BR nord ,
+.BR gruvbox ,
+.B tokyo\-night
+or
+.BR mono .
+The default is
+.BR kodougu .
+.TP
+.BI \-\- setting " value"
+Any tmux option below, named with dashes, such as
+.B \-\-mode
+or
+.BR \-\-edges .
+It also takes the form
+.IR \-\-setting = value .
+.SH ENVIRONMENT
+.TP
+.B REORDER_REVAMPED_SETTING
+Any tmux option below in capitals, such as
+.BR REORDER_REVAMPED_MODE .
+The command line wins over the environment, and the environment over the
+tmux option.
+.TP
+.B REORDER_REVAMPED_THEME
+The theme when
+.B \-\-theme
+is not given.
+.TP
+.B REORDER_REVAMPED_ACCENT
+A colour such as #CBA6F7 that replaces the accent of the theme.
+.TP
+.B KODOUGU_THEME
+The theme of every kodougu and tmux-revamped tool, when neither
+.B \-\-theme
+nor
+.B REORDER_REVAMPED_THEME
+is set.
+.TP
+.B KODOUGU_ACCENT
+The accent of every kodougu and tmux-revamped tool, when
+.B REORDER_REVAMPED_ACCENT
+is not set.
+.TP
+.B NO_COLOR
+Turns colour off in every theme.
+.SH TMUX OPTIONS
+An empty tmux option means its default. Mode, live and edges are read when
+the plugin loads.
+.TP
+.B @reorder_revamped_mode
+.B insert
+moves the window and shifts the ones in between;
+.B swap
+exchanges only the two windows, on release, with no live slide. The default is
+.BR insert .
+.TP
+.B @reorder_revamped_live
+.B off
+keeps the tabs still while you drag and moves the window only on release. The
+default is
+.BR on .
+.TP
+.B @reorder_revamped_edges
+.B off
+leaves status-left, status-right and the empty space unbound. The default is
+.BR on .
+.TP
+.B @reorder_revamped_timeout
+Seconds of client activity after which a recorded drag is ignored, so a drag
+abandoned over a pane cannot move a window on a later release. The default is
+.BR 10 .
+.TP
+.B @reorder_revamped_enable_logging
+.B 1
+writes failed moves to
+.IR ~/.tmux/reorder-revamped-logs/ .
+.TP
+.B @revamped_theme
+The theme of every tmux-revamped tool, when nothing else sets one. The default
+is
+.BR kodougu .
+.SH EXIT STATUS
+0 on success, 1 on any failure.
+.SH SEE ALSO
+.BR tmux (1),
+.BR gum (1)
