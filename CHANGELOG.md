@@ -1,5 +1,14 @@
 # Changelog
 
+# [1.1.0](https://github.com/tmux-revamped/tmux-reorder-revamped/compare/v1.0.1...v1.1.0) (2026-11-16)
+
+
+### Features
+
+* add a shared desktop notifier ([b3b4722](https://github.com/tmux-revamped/tmux-reorder-revamped/commit/b3b47220a9dbd31cb81409f76e40e5255c954c68))
+* **family:** accept bot updates in the audit ([1d71403](https://github.com/tmux-revamped/tmux-reorder-revamped/commit/1d7140310d5f8dce461263359e7729b8eac7a33a))
+* rewrite the plugin in POSIX sh ([ccc7617](https://github.com/tmux-revamped/tmux-reorder-revamped/commit/ccc7617d45d5c2ce12619e5e61d596b0c9e32308))
+
 All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
