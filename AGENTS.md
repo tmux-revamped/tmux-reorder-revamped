@@ -47,4 +47,6 @@ Guidance for anyone, human or agent, changing tmux-reorder-revamped. What it is 
 
 ## Gaps against FAMILY.md
 
-As of 2026-11-16, none.
+As of 2026-11-16:
+
+- The real-client drags in [`test/mouse.bats`](test/mouse.bats) press `MouseDown1Status`, `MouseDrag1Status`, `MouseDragEnd1Status` and `MouseDragEnd1StatusDefault`; no test presses `SecondClick1Status`, `TripleClick1Status`, `MouseUp1Status`, `MouseDragEnd1StatusLeft` or `MouseDragEnd1StatusRight`.
