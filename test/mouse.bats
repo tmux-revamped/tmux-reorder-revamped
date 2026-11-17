@@ -180,3 +180,90 @@ drag() {
   # Assert
   wait_for order_is "c b a d"
 }
+
+pressed_is() {
+  local now
+  now=$(tmux show-options -gqv @reorder_revamped_pressed)
+  [[ "${now}" == "$1" ]]
+}
+
+active_is() {
+  local now
+  now=$(tmux display-message -p -t test: '#{window_name}')
+  [[ "${now}" == "$1" ]]
+}
+
+@test "mouse - a click on a tab selects its window and leaves no press behind" {
+  # Arrange
+  local tab window
+  tab=$(column_of ":c")
+  window=$(tmux display-message -p -t test:=c '#{window_id}')
+  send_mouse 0 "${tab}" "${ROWS}" M
+  wait_for pressed_is "${window}"
+
+  # Act
+  send_mouse 0 "${tab}" "${ROWS}" m
+
+  # Assert
+  wait_for pressed_is ""
+  wait_for active_is c
+  wait_for order_is "a b c d"
+}
+
+@test "mouse - a drag that starts on a second click still reorders the windows" {
+  # Arrange
+  local from to
+  from=$(column_of ":a")
+  to=$(column_of ":c")
+  send_mouse 0 "${from}" "${ROWS}" M
+  send_mouse 0 "${from}" "${ROWS}" m
+
+  # Act
+  drag "${from}" "${to}"
+
+  # Assert
+  wait_for order_is "b c a d"
+}
+
+@test "mouse - a drag that starts on a third click still reorders the windows" {
+  # Arrange
+  local from to
+  from=$(column_of ":a")
+  to=$(column_of ":c")
+  send_mouse 0 "${from}" "${ROWS}" M
+  send_mouse 0 "${from}" "${ROWS}" m
+  send_mouse 0 "${from}" "${ROWS}" M
+  send_mouse 0 "${from}" "${ROWS}" m
+
+  # Act
+  drag "${from}" "${to}"
+
+  # Assert
+  wait_for order_is "b c a d"
+}
+
+@test "mouse - with the live slide off, dropping a tab on the left of the status line moves it to the start" {
+  # Arrange
+  local from
+  TMUX="${TMUX_SOCKET},1,0" sh "${ROOT}/bin/reorder-revamped" --live off apply
+  from=$(column_of ":c")
+
+  # Act
+  drag "${from}" 2
+
+  # Assert
+  wait_for order_is "c a b d"
+}
+
+@test "mouse - with the live slide off, dropping a tab on the right of the status line moves it to the end" {
+  # Arrange
+  local from
+  TMUX="${TMUX_SOCKET},1,0" sh "${ROOT}/bin/reorder-revamped" --live off apply
+  from=$(column_of ":a")
+
+  # Act
+  drag "${from}" $((COLUMNS - 2))
+
+  # Assert
+  wait_for order_is "b c d a"
+}
