@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.2.0](https://github.com/tmux-revamped/tmux-reorder-revamped/compare/v1.1.1...v1.2.0) (2026-11-17)
+
+
+### Features
+
+* add swipe and the drop on another session ([7a93ea6](https://github.com/tmux-revamped/tmux-reorder-revamped/commit/7a93ea64a287877efea701fcb7fe38970240bc0c))
+
 ## [1.1.1](https://github.com/tmux-revamped/tmux-reorder-revamped/compare/v1.1.0...v1.1.1) (2026-11-17)
 
 
