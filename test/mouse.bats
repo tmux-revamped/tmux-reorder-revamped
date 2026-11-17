@@ -166,3 +166,17 @@ drag() {
   # Assert
   wait_for order_is "b c a d"
 }
+
+@test "mouse - a mode given to apply on the command line reaches the drop" {
+  # Arrange
+  local from to
+  TMUX="${TMUX_SOCKET},1,0" sh "${ROOT}/bin/reorder-revamped" --mode swap apply
+  from=$(column_of ":a")
+  to=$(column_of ":c")
+
+  # Act
+  drag "${from}" "${to}"
+
+  # Assert
+  wait_for order_is "c b a d"
+}

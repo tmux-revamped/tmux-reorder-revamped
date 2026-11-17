@@ -108,7 +108,7 @@ run-shell ~/.tmux/plugins/tmux-reorder-revamped/reorder-revamped.tmux
 | `@reorder_revamped_timeout` | `10` | 記錄的拖動在用戶端活動多少秒後被忽略，這樣在窗格上放棄的拖動不會在之後放開時移動視窗 |
 | `@reorder_revamped_enable_logging` | 未設定 | `1` 時把失敗的移動寫入 `~/.tmux/reorder-revamped-logs/` |
 
-mode、live 和 edges 決定綁定的形式，修改後請執行 `reorder-revamped apply` 或重新載入設定。每個選項亦可寫成以短橫線連接的命令選項，例如 `--edges off`，以及環境變數，例如 `REORDER_REVAMPED_EDGES`；命令列優先於環境變數，環境變數優先於 tmux 選項。空的 tmux 選項表示使用預設值。
+mode、live 和 edges 決定綁定的形式，修改後請執行 `reorder-revamped apply` 或重新載入設定。每個選項亦可寫成以短橫線連接的命令選項，例如 `--edges off`，以及環境變數，例如 `REORDER_REVAMPED_EDGES`；命令列優先於環境變數，環境變數優先於 tmux 選項。透過命令列或環境變數傳給 `apply` 的 mode 和 timeout 亦會帶到每次放下；在 tmux 選項中設定的值會在每次拖動結束時重新讀取。空的 tmux 選項表示使用預設值。
 
 插件把拖動狀態保存在 `@reorder_revamped_source`、`_seen`、`_hit`、`_probe`、`_hover`、`_pressed`、`_pressed_at` 和 `_press_original` 中。請不要設定它們。
 

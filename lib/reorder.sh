@@ -117,6 +117,13 @@ reorder_revamped_tool() {
   reorder_revamped_quote_run_shell "${REVAMPED_LIB%/lib}/bin/reorder-revamped"
 }
 
+reorder_revamped_carried() {
+  reorder_revamped_carried_out=""
+  [ -z "${REORDER_REVAMPED_MODE:-}" ] || reorder_revamped_carried_out=" --mode $(reorder_revamped_quote_run_shell "${REORDER_REVAMPED_S_mode}")"
+  [ -z "${REORDER_REVAMPED_TIMEOUT:-}" ] || reorder_revamped_carried_out="${reorder_revamped_carried_out} --timeout $(reorder_revamped_quote_run_shell "${REORDER_REVAMPED_S_timeout}")"
+  printf '%s' "${reorder_revamped_carried_out}"
+}
+
 reorder_revamped_keys() {
   tmux list-keys 2>/dev/null | awk '
     {
@@ -172,7 +179,7 @@ run-shell
 -b
 -t
 =
-${REORDER_REVAMPED_SELF} drop ${reorder_revamped_plan_release_args} '#{window_id}' '#{client_activity}'
+${REORDER_REVAMPED_SELF}${REORDER_REVAMPED_CARRIED} drop ${reorder_revamped_plan_release_args} '#{window_id}' '#{client_activity}'
 ${reorder_revamped_plan_release_drag}"
 }
 
@@ -187,7 +194,7 @@ reorder_revamped_plan_edges() {
 ${reorder_revamped_plan_edges_key}
 run-shell
 -b
-${REORDER_REVAMPED_SELF} edge ${reorder_revamped_plan_edges_pair#*:} ${reorder_revamped_plan_edges_args} '#{client_activity}'
+${REORDER_REVAMPED_SELF}${REORDER_REVAMPED_CARRIED} edge ${reorder_revamped_plan_edges_pair#*:} ${reorder_revamped_plan_edges_args} '#{client_activity}'
 ${reorder_revamped_plan_edges_drag}"
       continue
     fi
@@ -267,6 +274,7 @@ reorder_revamped_plan() {
   reorder_revamped_at_least "${REORDER_REVAMPED_MIN_TMUX}" || return 0
   REORDER_REVAMPED_KEYS=$(reorder_revamped_keys)
   REORDER_REVAMPED_SELF=$(reorder_revamped_tool)
+  REORDER_REVAMPED_CARRIED=$(reorder_revamped_carried)
   reorder_revamped_plan_live=$(reorder_revamped_live_strategy)
   [ "${reorder_revamped_plan_live}" != window ] || reorder_revamped_emit set-option -g "${REORDER_REVAMPED_HIT}" "${REORDER_REVAMPED_WINDOW_HIT_FORMAT}"
   reorder_revamped_plan_press

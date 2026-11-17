@@ -493,3 +493,29 @@ keys() {
   run grep -c '^bind-key\|^set-option' "${REVAMPED_TEST_TMUX_ARGV}"
   [[ "${output}" -ge 2 ]]
 }
+
+@test "reorder - a mode and timeout from the command line or environment ride on the drop and edge bindings" {
+  # Arrange
+  export REVAMPED_TEST_TMUX_VERSION=3.8
+
+  # Act
+  lib_run reorder 'REORDER_REVAMPED_MODE=swap REORDER_REVAMPED_TIMEOUT=5; export REORDER_REVAMPED_MODE REORDER_REVAMPED_TIMEOUT; reorder_revamped_plan; reorder_revamped_lines | grep -E "MouseDragEnd1Status(Left)? "'
+
+  # Assert
+  [[ "${#lines[@]}" -eq 2 ]]
+  [[ "${lines[0]}" == *"/bin/reorder-revamped' --mode 'swap' --timeout '5' drop '#{session_id}'"* ]]
+  [[ "${lines[1]}" == *"/bin/reorder-revamped' --mode 'swap' --timeout '5' edge first '#{session_id}'"* ]]
+}
+
+@test "reorder - a mode from the tmux option stays live, so the drop binding carries none" {
+  # Arrange
+  option mode swap
+  export REVAMPED_TEST_TMUX_VERSION=3.8
+
+  # Act
+  lib_run reorder 'reorder_revamped_plan; reorder_revamped_lines | grep -E "MouseDragEnd1Status "'
+
+  # Assert
+  [[ "${output}" == *"/bin/reorder-revamped' drop '#{session_id}'"* ]]
+  [[ "${output}" != *"--mode"* ]]
+}

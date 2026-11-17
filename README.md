@@ -108,7 +108,7 @@ With tmux's `mouse` option on, drag a tab. All bindings live in the root table, 
 | `@reorder_revamped_timeout` | `10` | Seconds of client activity after which a recorded drag is ignored, so a drag abandoned over a pane cannot move a window on a later release |
 | `@reorder_revamped_enable_logging` | unset | `1` writes failed moves to `~/.tmux/reorder-revamped-logs/` |
 
-Mode, live and edges shape the bindings, so run `reorder-revamped apply` or reload the config after changing them. Every option is also a command option with dashes, such as `--edges off`, and an environment variable, such as `REORDER_REVAMPED_EDGES`; the command line wins over the environment, and the environment over the tmux option. An empty tmux option means its default.
+Mode, live and edges shape the bindings, so run `reorder-revamped apply` or reload the config after changing them. Every option is also a command option with dashes, such as `--edges off`, and an environment variable, such as `REORDER_REVAMPED_EDGES`; the command line wins over the environment, and the environment over the tmux option. A mode or timeout given to `apply` on the command line or in the environment also rides on every drop; one set as a tmux option is read again when each drag ends. An empty tmux option means its default.
 
 The plugin keeps its drag state in `@reorder_revamped_source`, `_seen`, `_hit`, `_probe`, `_hover`, `_pressed`, `_pressed_at` and `_press_original`. Do not set them.
 

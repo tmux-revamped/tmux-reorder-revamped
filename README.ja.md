@@ -108,7 +108,7 @@ tmux の `mouse` オプションをオンにしてタブをドラッグします
 | `@reorder_revamped_timeout` | `10` | 記録したドラッグを無視するまでのクライアント操作の秒数。ペインの上で放棄したドラッグが、後で離したときにウィンドウを動かさないようにします |
 | `@reorder_revamped_enable_logging` | 未設定 | `1` で失敗した移動を `~/.tmux/reorder-revamped-logs/` に書き出します |
 
-mode、live、edges は割り当ての形を決めるので、変更したら `reorder-revamped apply` を実行するか設定を再読み込みします。どのオプションも、ダッシュ区切りのコマンドオプション（例 `--edges off`）と環境変数（例 `REORDER_REVAMPED_EDGES`）で指定できます。優先順位はコマンドライン、環境変数、tmux オプションの順です。空の tmux オプションは既定値を意味します。
+mode、live、edges は割り当ての形を決めるので、変更したら `reorder-revamped apply` を実行するか設定を再読み込みします。どのオプションも、ダッシュ区切りのコマンドオプション（例 `--edges off`）と環境変数（例 `REORDER_REVAMPED_EDGES`）で指定できます。優先順位はコマンドライン、環境変数、tmux オプションの順です。`apply` にコマンドラインまたは環境変数で渡した mode と timeout はドロップにも引き継がれ、tmux オプションで設定したものはドラッグが終わるたびに読み直されます。空の tmux オプションは既定値を意味します。
 
 プラグインはドラッグの状態を `@reorder_revamped_source`、`_seen`、`_hit`、`_probe`、`_hover`、`_pressed`、`_pressed_at`、`_press_original` に保存します。これらは設定しないでください。
 

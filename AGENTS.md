@@ -27,7 +27,7 @@ Guidance for anyone, human or agent, changing tmux-reorder-revamped. What it is 
 ## Behaviour
 
 - `apply` reads every setting, the status justification and the saved press command with one `tmux display-message` call, reads `list-keys` once, builds the plan, and sends every binding to tmux in one call separated by `;`.
-- `drop` and `edge` read the mode and the timeout from the tmux options when they run, so a setting given to `apply` on the command line shapes only the bindings.
+- A mode or timeout `apply` got from the command line or the environment rides on the drop and edge bindings as `--mode` and `--timeout`, since neither exists when tmux runs a binding; one from the tmux option is left off, so `drop` and `edge` read it when a drag ends and a change needs no reload.
 - An empty tmux option means its default.
 - The entry point clears every inherited `REVAMPED_` variable except the test switches, and every `REORDER_REVAMPED_*_LOADED` guard; every other global is assigned outright in the state file.
 - It binds the status line mouse keys in the root table, declared in the family key allocation, and no prefix key.

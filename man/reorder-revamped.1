@@ -37,6 +37,10 @@ slides under the pointer while you drag. The entry point
 runs
 .B apply
 once when tmux loads the plugin, and every binding goes to tmux in one call.
+A mode or timeout given to
+.B apply
+on the command line or in the environment rides on the drop and edge
+bindings; one set as a tmux option is read again when each drag ends.
 .PP
 Run with no command on a terminal, it offers a menu.
 .SH COMMANDS

@@ -92,8 +92,9 @@ notes:
   binding goes to tmux in one call. The first motion of a drag records the
   pressed tab with set-option -F, which starts no process; grab, slide, drop
   and edge run from the mouse bindings. A drag counts only when it began with
-  a press on a tab within the last 10 seconds. Settings given on the command
-  line shape the bindings apply makes; drop and edge read the tmux options.
+  a press on a tab within the last 10 seconds. A mode or timeout given to
+  apply on the command line or in the environment rides on the drop and edge
+  bindings; one set as a tmux option is read again when each drag ends.
   Needs tmux 3.2.
 
 examples:
