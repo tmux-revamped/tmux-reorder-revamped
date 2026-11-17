@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/tmux-revamped/tmux-reorder-revamped/compare/v1.1.0...v1.1.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* carry command-line settings to the keys ([9597992](https://github.com/tmux-revamped/tmux-reorder-revamped/commit/959799290400ccf26290ec7f1c24cc0a287b1861))
+
 # [1.1.0](https://github.com/tmux-revamped/tmux-reorder-revamped/compare/v1.0.1...v1.1.0) (2026-11-16)
 
 
