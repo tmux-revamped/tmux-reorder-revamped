@@ -14,7 +14,7 @@ Guidance for anyone, human or agent, changing tmux-reorder-revamped. What it is 
 | [`lib/state.sh`](lib/state.sh) | Every global, including `REORDER_REVAMPED_SETTINGS`, the table of setting names and defaults the rest reads, and the names of the drag state options |
 | [`lib/core.sh`](lib/core.sh) | The version |
 | [`lib/`](lib) | Every other file is the shared library, identical in every member |
-| [`test/reorder.bats`](test/reorder.bats), [`test/commands.bats`](test/commands.bats), [`test/entrypoint.bats`](test/entrypoint.bats), [`test/mouse.bats`](test/mouse.bats) | This member's suites: the library, the commands, the bindings and moves on a private tmux server, and real mouse drags sent from a second tmux attached to it |
+| [`test/reorder.bats`](test/reorder.bats), [`test/reorder-plan.bats`](test/reorder-plan.bats), [`test/commands.bats`](test/commands.bats), [`test/entrypoint.bats`](test/entrypoint.bats), [`test/mouse.bats`](test/mouse.bats) | This member's suites: the library, the commands, the bindings and moves on a private tmux server, and real mouse drags sent from a second tmux attached to it |
 | [`screens/`](screens) | The tapes and the recording's tmux config, with the status line on top so the tapes can drag tabs at fixed columns |
 
 ## Names
