@@ -106,11 +106,21 @@ With tmux's `mouse` option on, drag a tab. All bindings live in the root table, 
 | `@reorder_revamped_live` | `on` | `off` keeps the tabs still while you drag and moves the window only on release |
 | `@reorder_revamped_edges` | `on` | `off` leaves the session name, the right end and the empty space unbound |
 | `@reorder_revamped_timeout` | `10` | Seconds of client activity after which a recorded drag is ignored, so a drag abandoned over a pane cannot move a window on a later release |
+| `@reorder_revamped_swipe` | `off` | `on` binds a right-button drag inside a pane: a swipe that is wider than tall goes to the next or previous window, a taller one to the next or previous session; the right-click menu opens on release |
 | `@reorder_revamped_enable_logging` | unset | `1` writes failed moves to `~/.tmux/reorder-revamped-logs/` |
 
 Mode, live and edges shape the bindings, so run `reorder-revamped apply` or reload the config after changing them. Every option is also a command option with dashes, such as `--edges off`, and an environment variable, such as `REORDER_REVAMPED_EDGES`; the command line wins over the environment, and the environment over the tmux option. A mode or timeout given to `apply` on the command line or in the environment also rides on every drop; one set as a tmux option is read again when each drag ends. An empty tmux option means its default.
 
-The plugin keeps its drag state in `@reorder_revamped_source`, `_seen`, `_hit`, `_probe`, `_hover`, `_pressed`, `_pressed_at` and `_press_original`. Do not set them.
+A tab released on a part of the status line marked `range=session` moves to that session, on tmux 3.4 and later. tmux's default status line has no such part; this one lists every session as a drop target:
+
+```tmux
+set -g status-left-length 60
+set -g status-left '#{S:#[range=session|#{session_id}] #S #[norange]}'
+```
+
+With `@reorder_revamped_swipe on`, hold the right button in a pane and drag: right or left goes to the next or previous window, down or up to the next or previous session. A drag as wide as it is tall does nothing. An app that asked for the mouse still gets every event, and whatever was bound to a right click, tmux's pane menu by default, runs when the button is released without a drag.
+
+The plugin keeps its drag state in `@reorder_revamped_source`, `_seen`, `_hit`, `_probe`, `_hover`, `_pressed`, `_pressed_at`, `_press_original`, `_swipe_from` and `_swipe_original`. Do not set them.
 
 <a id="how-it-works"></a>
 
@@ -142,6 +152,10 @@ A drag counts only when it began with a press on a tab within the last 10 second
 <tr>
 <td width="50%" valign="top"><img src="screens/live-off.png" alt="reorder-revamped: @reorder_revamped_live off keeps the tabs still while dragging"><br><sub><code>@reorder_revamped_live off</code> keeps the tabs still while dragging, from <code>stills.tape</code></sub></td>
 <td width="50%" valign="top"><img src="screens/edges-off.png" alt="reorder-revamped: @reorder_revamped_edges off ignores the empty space"><br><sub><code>@reorder_revamped_edges off</code> ignores the empty space, from <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/session-drop.png" alt="reorder-revamped: A tab dropped on another session's name moves there"><br><sub>A tab dropped on another session's name moves there, from <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/swipe.png" alt="reorder-revamped: A right-button swipe goes to the next window"><br><sub>A right-button swipe goes to the next window, from <code>stills.tape</code></sub></td>
 </tr>
 <tr>
 <td width="50%" valign="top"><img src="screens/menu.png" alt="reorder-revamped: The menu"><br><sub>The menu, from <code>stills.tape</code></sub></td>

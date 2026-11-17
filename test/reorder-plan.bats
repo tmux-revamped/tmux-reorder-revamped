@@ -51,7 +51,7 @@ source "${BATS_TEST_DIRNAME:-.}/reorder_helpers.bash"
   plan_at "${version}"
 
   # Assert
-  [[ "${output}" == *"bind-key -n MouseDragEnd1Status run-shell -b -t = '"*"/bin/reorder-revamped' drop '#{session_id}' '#{@reorder_revamped_source}:#{@reorder_revamped_seen}' '#{window_id}' '#{client_activity}' \\; set-option -gu @reorder_revamped_source \\; set-option -gu @reorder_revamped_seen \\; set-option -gu @reorder_revamped_hover \\; set-option -gu @reorder_revamped_probe \\; set-option -gu @reorder_revamped_pressed \\; set-option -gu @reorder_revamped_pressed_at"* ]]
+  [[ "${output}" == *"bind-key -n MouseDragEnd1Status run-shell -b -t = '"*"/bin/reorder-revamped' drop '#{session_id}' '#{@reorder_revamped_source}:#{@reorder_revamped_seen}' '#{window_id}' '#{client_activity}' '#{mouse_status_range}' \\; set-option -gu @reorder_revamped_source \\; set-option -gu @reorder_revamped_seen \\; set-option -gu @reorder_revamped_hover \\; set-option -gu @reorder_revamped_probe \\; set-option -gu @reorder_revamped_pressed \\; set-option -gu @reorder_revamped_pressed_at"* ]]
 }
 
 @test "reorder - the three edge drops are bound by default and skipped when edges are off" {
@@ -193,7 +193,7 @@ source "${BATS_TEST_DIRNAME:-.}/reorder_helpers.bash"
 
 @test "reorder - the load also reads the justification and the saved press command" {
   # Arrange
-  tmux_answer "$(printf '#{@reorder_revamped_mode}\t#{@reorder_revamped_live}\t#{@reorder_revamped_edges}\t#{@reorder_revamped_timeout}\t#{status-justify}\t#{@reorder_revamped_press_original}')" "$(printf '\t\t\t\tcentre\tselect-window -t =')" '$1'
+  tmux_answer "$(printf '#{@reorder_revamped_mode}\t#{@reorder_revamped_live}\t#{@reorder_revamped_edges}\t#{@reorder_revamped_timeout}\t#{@reorder_revamped_swipe}\t#{status-justify}\t#{@reorder_revamped_press_original}')" "$(printf '\t\t\t\t\tcentre\tselect-window -t =')" '$1'
 
   # Act
   lib_run reorder 'reorder_revamped_load "\$1"; printf "[%s][%s][%s]" "${REORDER_REVAMPED_S_justify}" "${REORDER_REVAMPED_S_press_original}" "${REORDER_REVAMPED_S_mode}"'

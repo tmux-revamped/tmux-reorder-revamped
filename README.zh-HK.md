@@ -106,11 +106,21 @@ run-shell ~/.tmux/plugins/tmux-reorder-revamped/reorder-revamped.tmux
 | `@reorder_revamped_live` | `on` | `off` 時拖動中標籤不動，放開時才移動視窗 |
 | `@reorder_revamped_edges` | `on` | `off` 時不綁定工作階段名稱、右端和空白處 |
 | `@reorder_revamped_timeout` | `10` | 記錄的拖動在用戶端活動多少秒後被忽略，這樣在窗格上放棄的拖動不會在之後放開時移動視窗 |
+| `@reorder_revamped_swipe` | `off` | `on` 時綁定窗格內的右鍵拖動：橫向較長的滑動切換到下一個或上一個視窗，縱向較長的滑動切換到下一個或上一個工作階段；右鍵選單在放開按鍵時開啟 |
 | `@reorder_revamped_enable_logging` | 未設定 | `1` 時把失敗的移動寫入 `~/.tmux/reorder-revamped-logs/` |
 
 mode、live 和 edges 決定綁定的形式，修改後請執行 `reorder-revamped apply` 或重新載入設定。每個選項亦可寫成以短橫線連接的命令選項，例如 `--edges off`，以及環境變數，例如 `REORDER_REVAMPED_EDGES`；命令列優先於環境變數，環境變數優先於 tmux 選項。透過命令列或環境變數傳給 `apply` 的 mode 和 timeout 亦會帶到每次放下；在 tmux 選項中設定的值會在每次拖動結束時重新讀取。空的 tmux 選項表示使用預設值。
 
-插件把拖動狀態保存在 `@reorder_revamped_source`、`_seen`、`_hit`、`_probe`、`_hover`、`_pressed`、`_pressed_at` 和 `_press_original` 中。請不要設定它們。
+把標籤放到狀態列中以 `range=session` 標記的部分，視窗就會移到那個工作階段，需要 tmux 3.4 或以上。tmux 預設的狀態列沒有這樣的部分；以下設定把每個工作階段都列為放置目標：
+
+```tmux
+set -g status-left-length 60
+set -g status-left '#{S:#[range=session|#{session_id}] #S #[norange]}'
+```
+
+設定 `@reorder_revamped_swipe on` 後，在窗格內按住右鍵拖動：向右或向左切換到下一個或上一個視窗，向下或向上切換到下一個或上一個工作階段。橫向和縱向一樣長的拖動不會做任何事。要求使用滑鼠的應用程式仍然收到所有事件，而原本綁定在右鍵上的命令，預設是 tmux 的窗格選單，會在沒有拖動就放開按鍵時執行。
+
+插件把拖動狀態保存在 `@reorder_revamped_source`、`_seen`、`_hit`、`_probe`、`_hover`、`_pressed`、`_pressed_at`、`_press_original`、`_swipe_from` 和 `_swipe_original` 中。請不要設定它們。
 
 <a id="運作原理"></a>
 
@@ -142,6 +152,10 @@ mode、live 和 edges 決定綁定的形式，修改後請執行 `reorder-revamp
 <tr>
 <td width="50%" valign="top"><img src="screens/live-off.png" alt="reorder-revamped：@reorder_revamped_live off 拖動時標籤不動"><br><sub><code>@reorder_revamped_live off</code> 拖動時標籤不動，來自 <code>stills.tape</code></sub></td>
 <td width="50%" valign="top"><img src="screens/edges-off.png" alt="reorder-revamped：@reorder_revamped_edges off 忽略空白處"><br><sub><code>@reorder_revamped_edges off</code> 忽略空白處，來自 <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/session-drop.png" alt="reorder-revamped：放到另一個工作階段名稱上的標籤移到那個工作階段"><br><sub>放到另一個工作階段名稱上的標籤移到那個工作階段，來自 <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/swipe.png" alt="reorder-revamped：右鍵滑動切換到下一個視窗"><br><sub>右鍵滑動切換到下一個視窗，來自 <code>stills.tape</code></sub></td>
 </tr>
 <tr>
 <td width="50%" valign="top"><img src="screens/menu.png" alt="reorder-revamped：選單"><br><sub>選單，來自 <code>stills.tape</code></sub></td>

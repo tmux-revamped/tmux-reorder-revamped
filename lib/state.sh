@@ -7,12 +7,14 @@ REORDER_REVAMPED_STATE_LOADED=1
 REORDER_REVAMPED_SETTINGS='mode	insert
 live	on
 edges	on
-timeout	10'
-REORDER_REVAMPED_NAMES='mode live edges timeout'
+timeout	10
+swipe	off'
+REORDER_REVAMPED_NAMES='mode live edges timeout swipe'
 REORDER_REVAMPED_S_mode='insert'
 REORDER_REVAMPED_S_live='on'
 REORDER_REVAMPED_S_edges='on'
 REORDER_REVAMPED_S_timeout='10'
+REORDER_REVAMPED_S_swipe='off'
 REORDER_REVAMPED_S_justify=''
 REORDER_REVAMPED_S_press_original=''
 REORDER_REVAMPED_MIN_TMUX=3.2
@@ -28,6 +30,9 @@ REORDER_REVAMPED_PRESS_ORIGINAL=@reorder_revamped_press_original
 REORDER_REVAMPED_HIT=@reorder_revamped_hit
 REORDER_REVAMPED_PROBE=@reorder_revamped_probe
 REORDER_REVAMPED_HOVER=@reorder_revamped_hover
+REORDER_REVAMPED_SWIPE_FROM=@reorder_revamped_swipe_from
+REORDER_REVAMPED_SWIPE_ORIGINAL=@reorder_revamped_swipe_original
+REORDER_REVAMPED_SWIPE_KEYS='MouseUp3Pane MouseDrag3Pane MouseDragEnd3Pane'
 REORDER_REVAMPED_WINDOW_HIT_FORMAT='#{window_id}'
 REORDER_REVAMPED_WINDOWS=""
 REORDER_REVAMPED_KEYS=""

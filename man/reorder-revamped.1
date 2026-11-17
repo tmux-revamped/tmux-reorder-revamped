@@ -18,10 +18,14 @@ reorder-revamped \- drag a window tab along the tmux status line to move it
 .br
 .B reorder-revamped drop
 .I session source:seen target activity
+.RI [ range ]
 .br
 .B reorder-revamped edge
 .BR first | last | trailing
 .I session source:seen activity
+.br
+.B reorder-revamped swipe
+.I from to session client
 .br
 .B reorder-revamped doctor
 .br
@@ -66,9 +70,27 @@ the tabs in between shifting over. With
 .I measure
 set to 1 it also writes the new hit format in the same tmux command.
 .TP
-.BI drop " session source:seen target activity"
+.BI drop " session source:seen target activity " [ range ]
 Move the dragged window onto the tab it was released on, when the drag was
-seen within the timeout.
+seen within the timeout. When
+.I range
+is
+.BR session ,
+the release landed on a part of the status line marked
+.BR range=session ,
+and the window moves into
+.I session
+instead, on tmux 3.4 and later.
+.TP
+.BI swipe " from to session client"
+Compare the two points, each a column and a row. A drag that is wider than
+tall selects the next window of
+.I session
+when it went right and the previous one when it went left; a taller one
+switches
+.I client
+to the next session when it went down and the previous one when it went up. A
+drag as wide as it is tall does nothing.
 .TP
 .BI edge " first|last|trailing session source:seen activity"
 Move the dragged window to the start or the end of the list, for a release on
@@ -166,6 +188,15 @@ leaves status-left, status-right and the empty space unbound. The default is
 Seconds of client activity after which a recorded drag is ignored, so a drag
 abandoned over a pane cannot move a window on a later release. The default is
 .BR 10 .
+.TP
+.B @reorder_revamped_swipe
+.B on
+binds a right-button drag inside a pane to
+.BR swipe .
+The command bound to a right click, tmux's pane menu by default, then runs
+when the button is released without a drag, and an app that asked for the
+mouse still gets every event. The default is
+.BR off .
 .TP
 .B @reorder_revamped_enable_logging
 .B 1

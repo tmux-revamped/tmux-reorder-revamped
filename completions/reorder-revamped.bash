@@ -26,6 +26,10 @@ _reorder_revamped() {
   --timeout)
     return
     ;;
+  --swipe)
+    COMPREPLY=($(compgen -W "on off" -- "${cur}"))
+    return
+    ;;
   edge)
     COMPREPLY=($(compgen -W "first last trailing" -- "${cur}"))
     return
@@ -33,7 +37,7 @@ _reorder_revamped() {
   *) ;;
   esac
 
-  COMPREPLY=($(compgen -W "apply list grab slide drop edge doctor version help --json --theme --mode --live --edges --timeout" -- "${cur}"))
+  COMPREPLY=($(compgen -W "apply list grab slide drop edge swipe doctor version help --json --theme --mode --live --edges --timeout --swipe" -- "${cur}"))
 }
 
 complete -F _reorder_revamped reorder-revamped

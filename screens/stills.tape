@@ -557,3 +557,82 @@ Enter
 Sleep 3s
 Screenshot plain-apply.png
 Sleep 1s
+Hide
+Type "tmux send-keys -t code clear Enter; clear"
+Enter
+Sleep 500ms
+Show
+Hide
+Ctrl+]
+Type@5ms "tmux set -g @reorder_revamped_swipe on; reorder-revamped apply"
+Enter
+Show
+Type "tmux set -g @reorder_revamped_swipe on; reorder-revamped apply"
+Sleep 400ms
+Hide
+Ctrl+]
+Type@5ms "Enter"
+Enter
+Show
+Enter
+Sleep 2s
+Hide
+Ctrl+]
+Type@5ms "Right button swipe to the right"
+Enter
+Show
+Escape
+Type@1ms "[<2;20;8M"
+Sleep 120ms
+Escape
+Type@1ms "[<34;40;8M"
+Sleep 120ms
+Escape
+Type@1ms "[<34;60;8M"
+Sleep 120ms
+Escape
+Type@1ms "[<2;60;8m"
+Sleep 120ms
+Sleep 1s
+Screenshot swipe.png
+Sleep 500ms
+Hide
+Type "tmux new-session -d -s work -n mail; tmux set -g status-left-length 40; tmux set -g status-left '#{S:#[range=session|#{session_id}] #S #[norange]}'; clear"
+Enter
+Sleep 1s
+Show
+Hide
+Ctrl+]
+Type@5ms "Mouse drag the first tab onto session work"
+Enter
+Show
+Escape
+Type@1ms "[<0;15;1M"
+Sleep 120ms
+Escape
+Type@1ms "[<32;12;1M"
+Sleep 120ms
+Escape
+Type@1ms "[<32;9;1M"
+Sleep 120ms
+Sleep 800ms
+Escape
+Type@1ms "[<0;9;1m"
+Sleep 120ms
+Sleep 1s
+Hide
+Ctrl+]
+Type@5ms "tmux list-windows -a -F '#S: #W'"
+Enter
+Show
+Type "tmux list-windows -a -F '#S: #W'"
+Sleep 400ms
+Hide
+Ctrl+]
+Type@5ms "Enter"
+Enter
+Show
+Enter
+Sleep 2s
+Screenshot session-drop.png
+Sleep 1s

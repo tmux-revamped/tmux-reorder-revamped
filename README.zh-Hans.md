@@ -106,11 +106,21 @@ run-shell ~/.tmux/plugins/tmux-reorder-revamped/reorder-revamped.tmux
 | `@reorder_revamped_live` | `on` | `off` 时拖动中标签不动，松开时才移动窗口 |
 | `@reorder_revamped_edges` | `on` | `off` 时不绑定会话名、右端和空白处 |
 | `@reorder_revamped_timeout` | `10` | 记录的拖动在客户端活动多少秒后被忽略，这样在窗格上放弃的拖动不会在之后松开时移动窗口 |
+| `@reorder_revamped_swipe` | `off` | `on` 时绑定窗格内的右键拖动：横向更长的滑动切换到下一个或上一个窗口，纵向更长的滑动切换到下一个或上一个会话；右键菜单在松开按键时打开 |
 | `@reorder_revamped_enable_logging` | 未设置 | `1` 时把失败的移动写入 `~/.tmux/reorder-revamped-logs/` |
 
 mode、live 和 edges 决定绑定的形式，修改后请运行 `reorder-revamped apply` 或重新加载配置。每个选项也可以写成用短横线连接的命令选项，例如 `--edges off`，以及环境变量，例如 `REORDER_REVAMPED_EDGES`；命令行优先于环境变量，环境变量优先于 tmux 选项。通过命令行或环境变量传给 `apply` 的 mode 和 timeout 也会带到每次放下；在 tmux 选项中设置的值会在每次拖动结束时重新读取。空的 tmux 选项表示使用默认值。
 
-插件把拖动状态保存在 `@reorder_revamped_source`、`_seen`、`_hit`、`_probe`、`_hover`、`_pressed`、`_pressed_at` 和 `_press_original` 中。请不要设置它们。
+把标签放到状态栏中用 `range=session` 标记的部分，窗口就会移到那个会话，需要 tmux 3.4 及以上。tmux 默认的状态栏没有这样的部分；下面的设置把每个会话都列为放置目标：
+
+```tmux
+set -g status-left-length 60
+set -g status-left '#{S:#[range=session|#{session_id}] #S #[norange]}'
+```
+
+设置 `@reorder_revamped_swipe on` 后，在窗格里按住右键拖动：向右或向左切换到下一个或上一个窗口，向下或向上切换到下一个或上一个会话。横向和纵向一样长的拖动不做任何事。请求了鼠标的应用仍然收到所有事件，而原先绑定在右键上的命令，默认是 tmux 的窗格菜单，会在没有拖动就松开按键时运行。
+
+插件把拖动状态保存在 `@reorder_revamped_source`、`_seen`、`_hit`、`_probe`、`_hover`、`_pressed`、`_pressed_at`、`_press_original`、`_swipe_from` 和 `_swipe_original` 中。请不要设置它们。
 
 <a id="工作原理"></a>
 
@@ -142,6 +152,10 @@ mode、live 和 edges 决定绑定的形式，修改后请运行 `reorder-revamp
 <tr>
 <td width="50%" valign="top"><img src="screens/live-off.png" alt="reorder-revamped：@reorder_revamped_live off 拖动时标签不动"><br><sub><code>@reorder_revamped_live off</code> 拖动时标签不动，来自 <code>stills.tape</code></sub></td>
 <td width="50%" valign="top"><img src="screens/edges-off.png" alt="reorder-revamped：@reorder_revamped_edges off 忽略空白处"><br><sub><code>@reorder_revamped_edges off</code> 忽略空白处，来自 <code>stills.tape</code></sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/session-drop.png" alt="reorder-revamped：放到另一个会话名称上的标签移到那个会话"><br><sub>放到另一个会话名称上的标签移到那个会话，来自 <code>stills.tape</code></sub></td>
+<td width="50%" valign="top"><img src="screens/swipe.png" alt="reorder-revamped：右键滑动切换到下一个窗口"><br><sub>右键滑动切换到下一个窗口，来自 <code>stills.tape</code></sub></td>
 </tr>
 <tr>
 <td width="50%" valign="top"><img src="screens/menu.png" alt="reorder-revamped：菜单"><br><sub>菜单，来自 <code>stills.tape</code></sub></td>

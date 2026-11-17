@@ -5,6 +5,7 @@ complete -c reorder-revamped -n __fish_use_subcommand -a grab -d 'measure the ta
 complete -c reorder-revamped -n __fish_use_subcommand -a slide -d 'move the dragged window while dragging'
 complete -c reorder-revamped -n __fish_use_subcommand -a drop -d 'move the dragged window on release'
 complete -c reorder-revamped -n __fish_use_subcommand -a edge -d 'move the dragged window to an end'
+complete -c reorder-revamped -n __fish_use_subcommand -a swipe -d 'change window or session after a swipe'
 complete -c reorder-revamped -n __fish_use_subcommand -a doctor -d 'check this machine'
 complete -c reorder-revamped -n __fish_use_subcommand -a version -d 'print the version'
 complete -c reorder-revamped -n __fish_use_subcommand -a help -d 'print the help page'
@@ -15,3 +16,4 @@ complete -c reorder-revamped -l mode -r -a 'insert swap' -d 'how a drop moves th
 complete -c reorder-revamped -l live -r -a 'on off' -d 'slide the tab while dragging'
 complete -c reorder-revamped -l edges -r -a 'on off' -d 'bind the status line ends'
 complete -c reorder-revamped -l timeout -r -d 'seconds a drag stays valid'
+complete -c reorder-revamped -l swipe -r -a 'on off' -d 'right-button swipe in a pane'

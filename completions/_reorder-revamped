@@ -9,6 +9,7 @@ _reorder_revamped() {
     'slide:move the dragged window while dragging'
     'drop:move the dragged window on release'
     'edge:move the dragged window to an end'
+    'swipe:change window or session after a swipe'
     'doctor:check this machine'
     'version:print the version'
     'help:print the help page'
@@ -21,6 +22,7 @@ _reorder_revamped() {
     '--live[slide the tab while dragging]:value:(on off)' \
     '--edges[bind the status line ends]:value:(on off)' \
     '--timeout[seconds a drag stays valid]:value:' \
+    '--swipe[right-button swipe in a pane]:value:(on off)' \
     '1:command:->command'
 
   if [[ "${state}" == command ]]; then

@@ -106,11 +106,21 @@ tmux の `mouse` オプションをオンにしてタブをドラッグします
 | `@reorder_revamped_live` | `on` | `off` でドラッグ中はタブを動かさず、離したときだけウィンドウを移動します |
 | `@reorder_revamped_edges` | `on` | `off` でセッション名、右端、空いた場所を割り当てません |
 | `@reorder_revamped_timeout` | `10` | 記録したドラッグを無視するまでのクライアント操作の秒数。ペインの上で放棄したドラッグが、後で離したときにウィンドウを動かさないようにします |
+| `@reorder_revamped_swipe` | `off` | `on` でペイン内の右ボタンドラッグを割り当てます。横に長いスワイプは次または前のウィンドウへ、縦に長いスワイプは次または前のセッションへ移ります。右クリックのメニューはボタンを離したときに開きます |
 | `@reorder_revamped_enable_logging` | 未設定 | `1` で失敗した移動を `~/.tmux/reorder-revamped-logs/` に書き出します |
 
 mode、live、edges は割り当ての形を決めるので、変更したら `reorder-revamped apply` を実行するか設定を再読み込みします。どのオプションも、ダッシュ区切りのコマンドオプション（例 `--edges off`）と環境変数（例 `REORDER_REVAMPED_EDGES`）で指定できます。優先順位はコマンドライン、環境変数、tmux オプションの順です。`apply` にコマンドラインまたは環境変数で渡した mode と timeout はドロップにも引き継がれ、tmux オプションで設定したものはドラッグが終わるたびに読み直されます。空の tmux オプションは既定値を意味します。
 
-プラグインはドラッグの状態を `@reorder_revamped_source`、`_seen`、`_hit`、`_probe`、`_hover`、`_pressed`、`_pressed_at`、`_press_original` に保存します。これらは設定しないでください。
+タブをステータスラインの `range=session` で印を付けた部分で離すと、そのセッションへ移ります。tmux 3.4 以降が必要です。tmux 既定のステータスラインにはその部分がないため、次の設定ですべてのセッションをドロップ先として並べられます。
+
+```tmux
+set -g status-left-length 60
+set -g status-left '#{S:#[range=session|#{session_id}] #S #[norange]}'
+```
+
+`@reorder_revamped_swipe on` にすると、ペインの中で右ボタンを押したままドラッグできます。右か左で次か前のウィンドウへ、下か上で次か前のセッションへ移ります。縦と横が同じ長さのドラッグは何もしません。マウスを要求したアプリにはすべてのイベントがそのまま届き、右クリックに割り当てられていたコマンド、既定では tmux のペインメニューは、ドラッグせずにボタンを離したときに実行されます。
+
+プラグインはドラッグの状態を `@reorder_revamped_source`、`_seen`、`_hit`、`_probe`、`_hover`、`_pressed`、`_pressed_at`、`_press_original`、`_swipe_from`、`_swipe_original` に保存します。これらは設定しないでください。
 
 <a id="仕組み"></a>
 
@@ -142,6 +152,10 @@ mode、live、edges は割り当ての形を決めるので、変更したら `r
 <tr>
 <td width="50%" valign="top"><img src="screens/live-off.png" alt="reorder-revamped: @reorder_revamped_live off はドラッグ中タブを動かさない"><br><sub><code>@reorder_revamped_live off</code> はドラッグ中タブを動かさない。<code>stills.tape</code>より</sub></td>
 <td width="50%" valign="top"><img src="screens/edges-off.png" alt="reorder-revamped: @reorder_revamped_edges off は空いた場所を無視する"><br><sub><code>@reorder_revamped_edges off</code> は空いた場所を無視する。<code>stills.tape</code>より</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/session-drop.png" alt="reorder-revamped: 別のセッション名に落としたタブはそのセッションへ"><br><sub>別のセッション名に落としたタブはそのセッションへ。<code>stills.tape</code>より</sub></td>
+<td width="50%" valign="top"><img src="screens/swipe.png" alt="reorder-revamped: 右ボタンのスワイプで次のウィンドウへ"><br><sub>右ボタンのスワイプで次のウィンドウへ。<code>stills.tape</code>より</sub></td>
 </tr>
 <tr>
 <td width="50%" valign="top"><img src="screens/menu.png" alt="reorder-revamped: メニュー"><br><sub>メニュー。<code>stills.tape</code>より</sub></td>

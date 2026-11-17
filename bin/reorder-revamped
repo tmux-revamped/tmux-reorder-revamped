@@ -51,11 +51,15 @@ usage:
   reorder-revamped slide SESSION SOURCE TARGET CLIENT MEASURE
                              move the dragged window onto a tab while
                              dragging
-  reorder-revamped drop SESSION SOURCE:SEEN TARGET ACTIVITY
+  reorder-revamped drop SESSION SOURCE:SEEN TARGET ACTIVITY [RANGE]
                              move the dragged window onto the tab it was
-                             released on
+                             released on, or into SESSION when RANGE is
+                             session
   reorder-revamped edge first|last|trailing SESSION SOURCE:SEEN ACTIVITY
                              move the dragged window to an end of the list
+  reorder-revamped swipe FROM TO SESSION CLIENT
+                             change window after a sideways swipe, or
+                             session after an up or down one
   reorder-revamped doctor    check this machine
   reorder-revamped version   print the version
   reorder-revamped help      print this page
@@ -84,6 +88,8 @@ tmux options:
                                     the empty space unbound (on)
   @reorder_revamped_timeout         seconds after which a recorded drag is
                                     ignored (10)
+  @reorder_revamped_swipe           on changes window or session on a
+                                    right-button swipe in a pane (off)
   @reorder_revamped_enable_logging  1 writes failed moves to a log (unset)
   @revamped_theme                   the family look (kodougu)
 
@@ -95,7 +101,10 @@ notes:
   a press on a tab within the last 10 seconds. A mode or timeout given to
   apply on the command line or in the environment rides on the drop and edge
   bindings; one set as a tmux option is read again when each drag ends.
-  Needs tmux 3.2.
+  A tab released on a part of the status line marked range=session moves to
+  that session, on tmux 3.4 and later. With swipe on, the command bound to a
+  right click runs when the button is released, so the pane menu no longer
+  takes the drag. Needs tmux 3.2.
 
 examples:
   reorder-revamped list
@@ -209,7 +218,7 @@ reorder_revamped_run() {
   [ -z "${reorder_revamped_json}" ] || [ "${1:-}" = list ] || reorder_revamped_usage "option '--json' works only with list"
   case "${1:-}" in
   apply) reorder_revamped_apply ;;
-  grab | slide | drop | edge)
+  grab | slide | drop | edge | swipe)
     reorder_revamped_run_verb="$1"
     shift
     "reorder_revamped_${reorder_revamped_run_verb}" "$@"

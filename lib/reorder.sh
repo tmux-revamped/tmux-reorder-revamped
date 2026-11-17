@@ -179,7 +179,7 @@ run-shell
 -b
 -t
 =
-${REORDER_REVAMPED_SELF}${REORDER_REVAMPED_CARRIED} drop ${reorder_revamped_plan_release_args} '#{window_id}' '#{client_activity}'
+${REORDER_REVAMPED_SELF}${REORDER_REVAMPED_CARRIED} drop ${reorder_revamped_plan_release_args} '#{window_id}' '#{client_activity}' '#{mouse_status_range}'
 ${reorder_revamped_plan_release_drag}"
 }
 
@@ -266,6 +266,50 @@ reorder_revamped_plan_grab() {
   reorder_revamped_emit "$@"
 }
 
+reorder_revamped_plan_swipe_off() {
+  if [ -n "$1" ]; then
+    reorder_revamped_emit bind-key -n MouseDown3Pane "$1"
+  else
+    reorder_revamped_emit unbind-key -n MouseDown3Pane
+  fi
+  for reorder_revamped_plan_swipe_off_key in ${REORDER_REVAMPED_SWIPE_KEYS}; do
+    reorder_revamped_emit unbind-key -n "${reorder_revamped_plan_swipe_off_key}"
+  done
+  reorder_revamped_emit set-option -gu "${REORDER_REVAMPED_SWIPE_ORIGINAL}"
+}
+
+reorder_revamped_plan_swipe_on() {
+  reorder_revamped_plan_swipe_on_clear="set-option -gu ${REORDER_REVAMPED_SWIPE_FROM}"
+  reorder_revamped_plan_swipe_on_run=$(reorder_revamped_quote_double "${REORDER_REVAMPED_SELF} swipe '#{${REORDER_REVAMPED_SWIPE_FROM}}' '#{mouse_x} #{mouse_y}' '#{session_id}' '#{client_name}'")
+  reorder_revamped_emit bind-key -n MouseDown3Pane set-option -gu "${REORDER_REVAMPED_SWIPE_FROM}" '\;' if-shell -F -t = '#{||:#{mouse_any_flag},#{pane_in_mode}}' 'select-pane -t = ; send-keys -M'
+  if [ -n "$1" ]; then
+    reorder_revamped_emit bind-key -n MouseUp3Pane set-option -gu "${REORDER_REVAMPED_SWIPE_FROM}" '\;' if-shell -F 1 "$1"
+  else
+    reorder_revamped_emit bind-key -n MouseUp3Pane set-option -gu "${REORDER_REVAMPED_SWIPE_FROM}" '\;' if-shell -F -t = '#{mouse_any_flag}' 'send-keys -M'
+  fi
+  reorder_revamped_emit bind-key -n MouseDrag3Pane if-shell -F -t = '#{mouse_any_flag}' 'send-keys -M' '\;' if-shell -F -t = "#{&&:#{!:#{mouse_any_flag}},#{==:#{${REORDER_REVAMPED_SWIPE_FROM}},}}" "set-option -gF ${REORDER_REVAMPED_SWIPE_FROM} '#{mouse_x} #{mouse_y}'"
+  reorder_revamped_emit bind-key -n MouseDragEnd3Pane if-shell -F -t = '#{mouse_any_flag}' 'send-keys -M' "run-shell -b \"${reorder_revamped_plan_swipe_on_run}\" ; ${reorder_revamped_plan_swipe_on_clear}"
+}
+
+reorder_revamped_plan_swipe() {
+  reorder_revamped_plan_swipe_current=$(reorder_revamped_binding MouseDown3Pane)
+  reorder_revamped_plan_swipe_ours=0
+  reorder_revamped_plan_swipe_original="${reorder_revamped_plan_swipe_current}"
+  case "${reorder_revamped_plan_swipe_current}" in
+  *"${REORDER_REVAMPED_SWIPE_FROM}"*)
+    reorder_revamped_plan_swipe_ours=1
+    reorder_revamped_plan_swipe_original=$(tmux show-option -gqv "${REORDER_REVAMPED_SWIPE_ORIGINAL}" 2>/dev/null) || reorder_revamped_plan_swipe_original=""
+    ;;
+  *) : ;;
+  esac
+  if [ "${REORDER_REVAMPED_S_swipe}" != on ]; then
+    [ "${reorder_revamped_plan_swipe_ours}" -eq 0 ] || reorder_revamped_plan_swipe_off "${reorder_revamped_plan_swipe_original}"
+    return 0
+  fi
+  [ -z "${reorder_revamped_plan_swipe_original}" ] || reorder_revamped_emit set-option -g "${REORDER_REVAMPED_SWIPE_ORIGINAL}" "${reorder_revamped_plan_swipe_original}"
+  reorder_revamped_plan_swipe_on "${reorder_revamped_plan_swipe_original}"
+}
+
 reorder_revamped_plan() {
   reorder_revamped_load
   reorder_revamped_plan_raw=$(tmux -V 2>/dev/null) || reorder_revamped_plan_raw=""
@@ -284,6 +328,7 @@ reorder_revamped_plan() {
   reorder_revamped_plan_grab "${reorder_revamped_plan_live}"
   reorder_revamped_plan_release
   reorder_revamped_plan_edges
+  reorder_revamped_plan_swipe
 }
 
 reorder_revamped_apply() {
@@ -441,16 +486,20 @@ reorder_revamped_edge_position() {
   esac
 }
 
+reorder_revamped_recent() {
+  reorder_revamped_load "$1"
+  reorder_revamped_recent_timeout="${REORDER_REVAMPED_S_timeout}"
+  case "${reorder_revamped_recent_timeout}" in
+  "" | *[!0-9]*) reorder_revamped_recent_timeout="${REORDER_REVAMPED_DEFAULT_TIMEOUT}" ;;
+  *) : ;;
+  esac
+  reorder_revamped_is_fresh "$2" "$3" "${reorder_revamped_recent_timeout}"
+}
+
 reorder_revamped_relocate() {
   set -- "$1" "$2" "$3" "$4" "$5" "${2%%:*}" "${2#*:}"
   [ -n "$6" ] && [ "$6" != "$5" ] || return 0
-  reorder_revamped_load "$1"
-  reorder_revamped_relocate_timeout="${REORDER_REVAMPED_S_timeout}"
-  case "${reorder_revamped_relocate_timeout}" in
-  "" | *[!0-9]*) reorder_revamped_relocate_timeout="${REORDER_REVAMPED_DEFAULT_TIMEOUT}" ;;
-  *) : ;;
-  esac
-  reorder_revamped_is_fresh "$7" "$3" "${reorder_revamped_relocate_timeout}" || return 0
+  reorder_revamped_recent "$1" "$7" "$3" || return 0
   reorder_revamped_windows "$1"
   reorder_revamped_relocate_from=$(reorder_revamped_position "$6") || return 0
   if [ -n "$5" ]; then
@@ -465,8 +514,53 @@ reorder_revamped_relocate() {
   reorder_revamped_move "$1" "$6" "${reorder_revamped_relocate_mode}" "${reorder_revamped_relocate_from}" "${reorder_revamped_relocate_to}"
 }
 
+reorder_revamped_send_away() {
+  set -- "$1" "${2%%:*}" "${2#*:}" "$3"
+  [ -n "$2" ] || return 0
+  reorder_revamped_recent "$1" "$3" "$4" || return 0
+  reorder_revamped_windows "$1"
+  ! reorder_revamped_position "$2" >/dev/null || return 0
+  tmux move-window -d -s "$2" -t "$1:" 2>/dev/null && return 0
+  # shellcheck source=SCRIPTDIR/log.sh
+  . "${REVAMPED_LIB}/log.sh"
+  revamped_log_error reorder "moving $2 to session $1 failed"
+}
+
 reorder_revamped_drop() {
+  if [ "${5:-}" = session ]; then
+    reorder_revamped_send_away "${1:-}" "${2:-}" "${4:-}"
+    return 0
+  fi
   reorder_revamped_relocate "${1:-}" "${2:-}" "${4:-}" "" "${3:-}"
+}
+
+reorder_revamped_swipe_way() {
+  case "$1 $2" in
+  *[!0-9\ ]* | *" "*" "*" "*" "*) return 0 ;;
+  [0-9]*" "[0-9]*" "[0-9]*" "[0-9]*) : ;;
+  *) return 0 ;;
+  esac
+  set -- "${1%% *}" "${1#* }" "${2%% *}" "${2#* }"
+  set -- "$(($3 - $1))" "$(($4 - $2))"
+  set -- "$1" "$2" "${1#-}" "${2#-}"
+  [ "$3" -ne "$4" ] || return 0
+  if [ "$3" -gt "$4" ]; then
+    [ "$1" -lt 0 ] || printf 'next-window\n'
+    [ "$1" -gt 0 ] || printf 'previous-window\n'
+    return 0
+  fi
+  [ "$2" -lt 0 ] || printf 'next-session\n'
+  [ "$2" -gt 0 ] || printf 'previous-session\n'
+}
+
+reorder_revamped_swipe() {
+  reorder_revamped_swipe_to=$(reorder_revamped_swipe_way "${1:-}" "${2:-}")
+  case "${reorder_revamped_swipe_to}" in
+  next-window | previous-window) tmux "${reorder_revamped_swipe_to}" -t "${3:-}" 2>/dev/null || : ;;
+  next-session) tmux switch-client -c "${4:-}" -n 2>/dev/null || : ;;
+  previous-session) tmux switch-client -c "${4:-}" -p 2>/dev/null || : ;;
+  *) : ;;
+  esac
 }
 
 reorder_revamped_edge() {
