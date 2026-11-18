@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/tmux-revamped/tmux-reorder-revamped/compare/v1.2.0...v1.2.1) (2026-11-18)
+
+
+### Bug Fixes
+
+* stop counting some characters twice ([e8fdd50](https://github.com/tmux-revamped/tmux-reorder-revamped/commit/e8fdd5081cf3ce710d74418fce9c19fe820bebbb))
+
 # [1.2.0](https://github.com/tmux-revamped/tmux-reorder-revamped/compare/v1.1.1...v1.2.0) (2026-11-17)
 
 
