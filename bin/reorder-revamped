@@ -119,8 +119,15 @@ reorder_revamped_version() {
   printf 'tmux: %s\n' "${reorder_revamped_tmux#tmux }"
 }
 
+reorder_revamped_doctor_settings() {
+  reorder_revamped_doctor_settings_rows=$(reorder_revamped_setting_rows)
+  # shellcheck disable=SC2154
+  revamped_doctor_settings "${REORDER_REVAMPED_KINDS}" "${reorder_revamped_doctor_settings_rows}"
+}
+
 reorder_revamped_doctor() {
   revamped_doctor_tmux
+  reorder_revamped_doctor_settings
   revamped_doctor_gum
   revamped_doctor_core_tools awk sed tr
   revamped_doctor_finish

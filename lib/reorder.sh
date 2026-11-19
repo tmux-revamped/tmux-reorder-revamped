@@ -37,15 +37,19 @@ reorder_revamped_resolve() {
   '
 }
 
-reorder_revamped_load() {
-  reorder_revamped_load_format=$(reorder_revamped_format)
+reorder_revamped_setting_rows() {
+  reorder_revamped_setting_rows_format=$(reorder_revamped_format)
   if [ -n "${1:-}" ]; then
     set -- -t "$1"
   else
     set --
   fi
-  reorder_revamped_load_live=$(tmux display-message -p "$@" "${reorder_revamped_load_format}" 2>/dev/null) || reorder_revamped_load_live=""
-  reorder_revamped_load_values=$(reorder_revamped_resolve "${reorder_revamped_load_live}")
+  reorder_revamped_setting_rows_live=$(tmux display-message -p "$@" "${reorder_revamped_setting_rows_format}" 2>/dev/null) || reorder_revamped_setting_rows_live=""
+  reorder_revamped_resolve "${reorder_revamped_setting_rows_live}"
+}
+
+reorder_revamped_load() {
+  reorder_revamped_load_values=$(reorder_revamped_setting_rows "${1:-}")
   while IFS='	' read -r reorder_revamped_load_name reorder_revamped_load_value; do
     IFS= read -r "REORDER_REVAMPED_S_${reorder_revamped_load_name}" <<EOF
 ${reorder_revamped_load_value}

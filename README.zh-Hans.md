@@ -109,7 +109,7 @@ run-shell ~/.tmux/plugins/tmux-reorder-revamped/reorder-revamped.tmux
 | `@reorder_revamped_swipe` | `off` | `on` 时绑定窗格内的右键拖动：横向更长的滑动切换到下一个或上一个窗口，纵向更长的滑动切换到下一个或上一个会话；右键菜单在松开按键时打开 |
 | `@reorder_revamped_enable_logging` | 未设置 | `1` 时把失败的移动写入 `~/.tmux/reorder-revamped-logs/` |
 
-mode、live 和 edges 决定绑定的形式，修改后请运行 `reorder-revamped apply` 或重新加载配置。每个选项也可以写成用短横线连接的命令选项，例如 `--edges off`，以及环境变量，例如 `REORDER_REVAMPED_EDGES`；命令行优先于环境变量，环境变量优先于 tmux 选项。通过命令行或环境变量传给 `apply` 的 mode 和 timeout 也会带到每次放下；在 tmux 选项中设置的值会在每次拖动结束时重新读取。空的 tmux 选项表示使用默认值。
+mode、live 和 edges 决定绑定的形式，修改后请运行 `reorder-revamped apply` 或重新加载配置。每个选项也可以写成用短横线连接的命令选项，例如 `--edges off`，以及环境变量，例如 `REORDER_REVAMPED_EDGES`；命令行优先于环境变量，环境变量优先于 tmux 选项。通过命令行或环境变量传给 `apply` 的 mode 和 timeout 也会带到每次放下；在 tmux 选项中设置的值会在每次拖动结束时重新读取。空的 tmux 选项表示使用默认值。`doctor` 会指出值无法识别的设置。
 
 把标签放到状态栏中用 `range=session` 标记的部分，窗口就会移到那个会话，需要 tmux 3.4 及以上。tmux 默认的状态栏没有这样的部分；下面的设置把每个会话都列为放置目标：
 

@@ -41,3 +41,8 @@ REORDER_REVAMPED_TMUX=""
 REORDER_REVAMPED_SELF=""
 REORDER_REVAMPED_CARRIED=""
 REVAMPED_LOG_NS=reorder-revamped
+REORDER_REVAMPED_KINDS='mode	swap insert
+live	on off
+edges	on off
+swipe	on off
+timeout	number'

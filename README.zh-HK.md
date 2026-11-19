@@ -109,7 +109,7 @@ run-shell ~/.tmux/plugins/tmux-reorder-revamped/reorder-revamped.tmux
 | `@reorder_revamped_swipe` | `off` | `on` 時綁定窗格內的右鍵拖動：橫向較長的滑動切換到下一個或上一個視窗，縱向較長的滑動切換到下一個或上一個工作階段；右鍵選單在放開按鍵時開啟 |
 | `@reorder_revamped_enable_logging` | 未設定 | `1` 時把失敗的移動寫入 `~/.tmux/reorder-revamped-logs/` |
 
-mode、live 和 edges 決定綁定的形式，修改後請執行 `reorder-revamped apply` 或重新載入設定。每個選項亦可寫成以短橫線連接的命令選項，例如 `--edges off`，以及環境變數，例如 `REORDER_REVAMPED_EDGES`；命令列優先於環境變數，環境變數優先於 tmux 選項。透過命令列或環境變數傳給 `apply` 的 mode 和 timeout 亦會帶到每次放下；在 tmux 選項中設定的值會在每次拖動結束時重新讀取。空的 tmux 選項表示使用預設值。
+mode、live 和 edges 決定綁定的形式，修改後請執行 `reorder-revamped apply` 或重新載入設定。每個選項亦可寫成以短橫線連接的命令選項，例如 `--edges off`，以及環境變數，例如 `REORDER_REVAMPED_EDGES`；命令列優先於環境變數，環境變數優先於 tmux 選項。透過命令列或環境變數傳給 `apply` 的 mode 和 timeout 亦會帶到每次放下；在 tmux 選項中設定的值會在每次拖動結束時重新讀取。空的 tmux 選項表示使用預設值。`doctor` 會指出數值無法識別的設定。
 
 把標籤放到狀態列中以 `range=session` 標記的部分，視窗就會移到那個工作階段，需要 tmux 3.4 或以上。tmux 預設的狀態列沒有這樣的部分；以下設定把每個工作階段都列為放置目標：
 
