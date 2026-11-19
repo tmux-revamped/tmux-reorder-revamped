@@ -1,5 +1,19 @@
 # Changelog
 
+# [1.3.0](https://github.com/tmux-revamped/tmux-reorder-revamped/compare/v1.2.1...v1.3.0) (2026-11-19)
+
+
+### Bug Fixes
+
+* fold a table wider than the terminal ([8d5ba66](https://github.com/tmux-revamped/tmux-reorder-revamped/commit/8d5ba6653221673e892ceb07e75aa1db71da2256))
+* read the grep of macOS as bsd in doctor ([1d0a961](https://github.com/tmux-revamped/tmux-reorder-revamped/commit/1d0a961592f0355dff2db7048c79d97438ef4eb6))
+* stop a recording that hangs ([c57f295](https://github.com/tmux-revamped/tmux-reorder-revamped/commit/c57f29506481b611ac4e861bbd18e2106d5cd128))
+
+
+### Features
+
+* name unknown setting values in doctor ([87df31a](https://github.com/tmux-revamped/tmux-reorder-revamped/commit/87df31ab8f00835b60fc8f20ca9aa186b89d619b))
+
 ## [1.2.1](https://github.com/tmux-revamped/tmux-reorder-revamped/compare/v1.2.0...v1.2.1) (2026-11-18)
 
 
